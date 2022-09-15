@@ -4,8 +4,15 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 # example web module for the web server. 
 """
 class WebModule:
-	def __init__(self, path='/'):
+	def __init__(self, path='/', params=''):
 		self.path = path
+		self.url_params = (params.lstrip('/')).split('/') if params else []
+		self.params = {}
+	
+	def get_url_params(self, path):
+		params = path.split('/')[len(self.path.split('/')):]
+		self.params = {key: params[i] for i, key in enumerate(self.url_params[:len(params)])}
+		return self.params
 
 	def POST(self, router):
 		router.send_simple("(POST) Hello, World!", 501)
@@ -24,7 +31,8 @@ class WebModule:
 		return True
 	
 	def do_METHOD(self, router, method):
-		return method(router) or True if router.path == self.path else False
+		if self.url_params: return method(router) or True if router.path.startswith(self.path) else False
+		else: return method(router) or True if router.path == self.path else False
 
 	def do_POST(self, router):
 		return self.do_METHOD(router, self.POST)

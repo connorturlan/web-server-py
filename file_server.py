@@ -5,9 +5,19 @@ import sys
 from pathlib import Path
 
 class FileServer(WebModule):
-	def __init__(self, path, files_path = './share'):
-		super().__init__(path)
+	def __init__(self, path, params, files_path = './share'):
+		super().__init__(path, params)
 		self.files_path = files_path
+	
+	def send_files(self, router):
+		# check auth
+		pass
+
+		# get the file structure
+
+		# send the JSON tree
+		router.send_simple("get all files.")
+		return True
 
 	def send_file(self, router, filepath):
 		# check auth
@@ -31,16 +41,43 @@ class FileServer(WebModule):
 			print('file found.')
 			mimetype = mimetypes.guess_type(filepath)
 			router.send({'Content-Type': mimetype}, file.read())
+			return True
 
 	def GET(self, router):
-		req_body = str(router.receive_body(), 'utf-8')
-		if not req_body: 
-			router.send_error(400, "No request body specified")
-			return
+		# get the url parameters.
+		params = self.get_url_params(router.path)
+		
+		# validate that there were params to check, otherwise it's just a simple get-all request.
+		if not params or 'method' not in params:
+			self.send_files(router)
+			return True
+		# return the get-all request.
+		elif params['method'] == 'all':
+			self.send_files(router)
+			return True
+		# return the file specified in the request body.
+		elif params['method'] == 'get':
+			# validate that the request has a body.
+			req_body = str(router.receive_body(), 'utf-8')
+			if not req_body: 
+				router.send_error(400, "No request body specified")
+				return True
 
-		filepath = json.loads(req_body)['filepath']
-		self.send_file(router, filepath)
-		return
+			# validate that the request json has the filepath attribute.
+			req_json = json.loads(req_body)
+			if 'filepath' not in req_body: 
+				router.send_error(400, "No `filepath` specified")
+				return True
+
+			# send the file, if it exists.
+			filepath = req_json['filepath']
+			self.send_file(router, filepath)
+			return True
+		# the specified method or parameter was invalid.
+		else:
+			router.send_error(400, "Invalid method")
+			return True
+		
 
 class WebpageServer(WebModule):
 	def GET(self, router):
@@ -50,5 +87,5 @@ class WebpageServer(WebModule):
 
 if __name__ == "__main__":
 	server = WebServer(sys.argv[1], int(sys.argv[2]))
-	server.add_module(WebpageServer(), FileServer("/files"))
+	server.add_module(WebpageServer(), FileServer("/files", "/method/id"))
 	server.start()
