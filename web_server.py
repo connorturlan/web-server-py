@@ -100,11 +100,11 @@ class WebServer:
 		for module in modules: WebController.add_module(self.router, module)
 
 	def start(self):
-		print("running.")
+		print("Web server running on %s:%d." % (self.hostname, self.port))
 		try:
 			self.http_server.serve_forever()
 		except KeyboardInterrupt:
-			print("end.")
+			print("Web server shutting down.")
 
 
 if __name__ == "__main__":

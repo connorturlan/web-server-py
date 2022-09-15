@@ -1,8 +1,10 @@
 from web_server import WebServer, WebModule
+import json
+import sys
 
 class FileServer(WebModule):
 	def GET(self, router):
-		print(str(router.receive_body(), 'utf-8'))
+		print(json.loads(str(router.receive_body(), 'utf-8')))
 		router.send_simple('')
 		return True
 
@@ -13,6 +15,6 @@ class WebpageServer(WebModule):
 		return True
 
 if __name__ == "__main__":
-	server = WebServer("localhost", 80)
+	server = WebServer(sys.argv[1], int(sys.argv[2]))
 	server.add_module(WebpageServer(), FileServer("/files"))
 	server.start()
