@@ -24,7 +24,7 @@ class WebModule:
 		return True
 	
 	def do_METHOD(self, router, method):
-		return method(router) if router.path == self.path else False
+		return method(router) or True if router.path == self.path else False
 
 	def do_POST(self, router):
 		return self.do_METHOD(router, self.POST)
@@ -51,7 +51,7 @@ class WebController(BaseHTTPRequestHandler):
 			self.modules.append(module) 
 
 	def send_body(self, b):
-		self.wfile.write(bytes(b, 'utf-8'))
+		self.wfile.write(b)
 	
 	def receive_body(self):
 		content_length = int(self.headers.get('content-length', 0))
@@ -65,13 +65,13 @@ class WebController(BaseHTTPRequestHandler):
 		self.send_body(body)
 	
 	def send_simple(self, body, code=200):
-		self.send({'Content-Type': 'text/html'}, body, code)
+		self.send({'Content-Type': 'text/html'}, bytes(body, 'utf-8'), code)
 	
 	def do_METHOD(self, method):
 		for module in self.modules: 
 			if method(module, self): break
 		else:
-			self.send_simple("404: File Not Found", 404)
+			self.send_error(404, "File not found")
 
 	def do_POST(self):
 		self.do_METHOD(WebModule.do_POST)
