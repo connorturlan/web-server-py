@@ -52,6 +52,10 @@ class WebController(BaseHTTPRequestHandler):
 
 	def send_body(self, b):
 		self.wfile.write(bytes(b, 'utf-8'))
+	
+	def receive_body(self):
+		content_length = int(self.headers.get('content-length', 0))
+		return self.rfile.read(content_length)
 
 	def send(self, header, body, code=200):
 		self.send_response(code)
