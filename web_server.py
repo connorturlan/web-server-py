@@ -1,4 +1,5 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
 
 """ 
 # example web module for the web server. 
@@ -66,8 +67,16 @@ class WebController(BaseHTTPRequestHandler):
 	
 	def send_simple(self, body, code=200):
 		self.send({'Content-Type': 'text/html'}, bytes(body, 'utf-8'), code)
-	
+
+	def get_params(self, path):
+		return parse_qs(urlparse(path).query)
+
 	def do_METHOD(self, method):
+		# get the params and strip.
+		self.params = self.get_params(self.path)
+		self.path = self.path.split('?')[0]
+
+		# perform the requested http method for each module.
 		for module in self.modules: 
 			if method(module, self): break
 		else:

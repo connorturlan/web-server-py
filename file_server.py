@@ -1,8 +1,8 @@
-import mimetypes
 from web_server import WebServer, WebModule
+from pathlib import Path
+import mimetypes
 import json
 import sys
-from pathlib import Path
 
 class FileServer(WebModule):
 	def __init__(self, path, files_path = './share'):
@@ -33,6 +33,7 @@ class FileServer(WebModule):
 			router.send({'Content-Type': mimetype}, file.read())
 
 	def GET(self, router):
+		print(router.params)
 		req_body = str(router.receive_body(), 'utf-8')
 		if not req_body: 
 			router.send_error(400, "No request body specified")
