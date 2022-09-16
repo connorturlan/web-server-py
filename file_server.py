@@ -1,22 +1,32 @@
-import mimetypes
+from genericpath import isdir
 from web_server import WebServer, WebModule
+from os import listdir, path, walk
+import os
+from pathlib import Path
+import mimetypes
 import json
 import sys
-from pathlib import Path
 
 class FileServer(WebModule):
 	def __init__(self, path, params, files_path = './share'):
 		super().__init__(path, params)
 		self.files_path = files_path
 	
+	def get_files_tree(self, this_dir):
+		# generate a tree of the share folder structure. 
+		content = {d: self.get_files_tree(path.join(this_dir, d)) for d in listdir(this_dir) if path.isdir(path.join(this_dir, d))}
+		content['.'] = [f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))]
+		return content
+
 	def send_files(self, router):
 		# check auth
 		pass
 
 		# get the file structure
+		tree = self.get_files_tree(self.files_path)
 
 		# send the JSON tree
-		router.send_simple("get all files.")
+		router.send_json(json.dumps(tree))
 		return True
 
 	def send_file(self, router, filepath):
@@ -46,9 +56,10 @@ class FileServer(WebModule):
 	def GET(self, router):
 		# get the url parameters.
 		params = self.get_url_params(router.path)
+		print(params)
 		
 		# validate that there were params to check, otherwise it's just a simple get-all request.
-		if not params or 'method' not in params:
+		if not params or 'method' not in params or not params['method']:
 			self.send_files(router)
 			return True
 		# return the get-all request.
@@ -65,7 +76,7 @@ class FileServer(WebModule):
 
 			# validate that the request json has the filepath attribute.
 			req_json = json.loads(req_body)
-			if 'filepath' not in req_body: 
+			if 'filepath' not in req_json: 
 				router.send_error(400, "No `filepath` specified")
 				return True
 

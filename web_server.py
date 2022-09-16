@@ -10,6 +10,7 @@ class WebModule:
 		self.params = {}
 	
 	def get_url_params(self, path):
+		# parametrize the url splitting after each `/` and map to the provided url_params for the module.
 		params = path.split('/')[len(self.path.split('/')):]
 		self.params = {key: params[i] for i, key in enumerate(self.url_params[:len(params)])}
 		return self.params
@@ -31,7 +32,9 @@ class WebModule:
 		return True
 	
 	def do_METHOD(self, router, method):
+		# if there are url params defined for this module, match the start of the path.
 		if self.url_params: return method(router) or True if router.path.startswith(self.path) else False
+		# otherwise, match the exact path.
 		else: return method(router) or True if router.path == self.path else False
 
 	def do_POST(self, router):
@@ -74,6 +77,9 @@ class WebController(BaseHTTPRequestHandler):
 	
 	def send_simple(self, body, code=200):
 		self.send({'Content-Type': 'text/html'}, bytes(body, 'utf-8'), code)
+	
+	def send_json(self, body, code=200):
+		self.send({'Content-Type': 'application/json'}, bytes(body, 'utf-8'), code)
 	
 	def do_METHOD(self, method):
 		for module in self.modules: 
