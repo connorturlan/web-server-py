@@ -1,7 +1,5 @@
-from genericpath import isdir
 from web_server import WebServer, WebModule
-from os import listdir, path, walk
-import os
+from os import listdir, path
 from pathlib import Path
 import mimetypes
 import json
