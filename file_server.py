@@ -14,6 +14,7 @@ class FileServer(WebModule):
 		# generate a tree of the share folder structure. 
 		content = {d: self.get_files_tree(path.join(this_dir, d)) for d in listdir(this_dir) if path.isdir(path.join(this_dir, d))}
 		content['.'] = [f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))]
+		content['..'] = [this_dir]
 		return content
 
 	def send_files(self, router):
@@ -54,8 +55,7 @@ class FileServer(WebModule):
 	def GET(self, router):
 		# get the url parameters.
 		params = self.get_url_params(router.path)
-		print(params)
-		
+
 		# validate that there were params to check, otherwise it's just a simple get-all request.
 		if not params or 'method' not in params or not params['method']:
 			self.send_files(router)
@@ -65,6 +65,40 @@ class FileServer(WebModule):
 			self.send_files(router)
 			return True
 		# return the file specified in the request body.
+		elif params['method'] == 'get':
+			filepath = self.files_path + '/' + '/'.join(params[''])
+			print(filepath)
+
+			# validate that the request has a body.
+			""" req_body = str(router.receive_body(), 'utf-8')
+			if not req_body: 
+				router.send_error(400, "No request body specified")
+				return True """
+
+			# validate that the request json has the filepath attribute.
+			""" req_json = json.loads(req_body)
+			if 'filepath' not in req_json: 
+				router.send_error(400, "No `filepath` specified")
+				return True """
+
+			# send the file, if it exists.
+			""" filepath = req_json['filepath'] """
+			self.send_file(router, filepath)
+			return True
+		# the specified method or parameter was invalid.
+		else:
+			router.send_error(400, "Invalid method")
+			return True
+	
+	def POST(self, router):
+		# get the url parameters.
+		params = self.get_url_params(router.path)
+		
+		# validate that there were params to check, otherwise it's just a simple get-all request.
+		if not params or 'method' not in params:
+			router.send_error(400, "Invalid method")
+			return True
+		# return the get-all request.
 		elif params['method'] == 'get':
 			# validate that the request has a body.
 			req_body = str(router.receive_body(), 'utf-8')
@@ -96,5 +130,5 @@ class WebpageServer(WebModule):
 
 if __name__ == "__main__":
 	server = WebServer(sys.argv[1], int(sys.argv[2]))
-	server.add_module(WebpageServer(), FileServer("/files", "/method/id"))
+	server.add_module(WebpageServer(), FileServer("/files", "/method"))
 	server.start()

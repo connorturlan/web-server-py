@@ -13,6 +13,7 @@ class WebModule:
 		# parametrize the url splitting after each `/` and map to the provided url_params for the module.
 		params = path.split('/')[len(self.path.split('/')):]
 		self.params = {key: params[i] for i, key in enumerate(self.url_params[:len(params)])}
+		self.params[''] = params[len(self.url_params):]
 		return self.params
 
 	def POST(self, router):
@@ -102,11 +103,6 @@ class WebController(BaseHTTPRequestHandler):
 
 	def do_DELETE(self):
 		self.do_METHOD(WebModule.do_DELETE)
-	
-	def do_OPTIONS(self):
-		self.send_response(200)
-		self.send_header('Access-Control-Allow-Origin', '*')
-		self.send_text('hello, world')
 
 """ 
 # a simple web server.
