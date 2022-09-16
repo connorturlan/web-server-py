@@ -72,6 +72,7 @@ class WebController(BaseHTTPRequestHandler):
 		self.send_response(code)
 		for field in header:
 			self.send_header(field, header[field])
+		self.send_header('Access-Control-Allow-Origin', '*')
 		self.end_headers()
 		self.send_body(body)
 	
@@ -80,6 +81,9 @@ class WebController(BaseHTTPRequestHandler):
 	
 	def send_json(self, body, code=200):
 		self.send({'Content-Type': 'application/json'}, bytes(body, 'utf-8'), code)
+	
+	def send_text(self, body, code=200):
+		self.send_body(bytes(body, 'utf-8'))
 	
 	def do_METHOD(self, method):
 		for module in self.modules: 
@@ -98,6 +102,11 @@ class WebController(BaseHTTPRequestHandler):
 
 	def do_DELETE(self):
 		self.do_METHOD(WebModule.do_DELETE)
+	
+	def do_OPTIONS(self):
+		self.send_response(200)
+		self.send_header('Access-Control-Allow-Origin', '*')
+		self.send_text('hello, world')
 
 """ 
 # a simple web server.
