@@ -14,7 +14,7 @@ class FileServer(WebModule):
 		# generate a tree of the share folder structure. 
 		content = {d: self.get_files_tree(path.join(this_dir, d)) for d in listdir(this_dir) if path.isdir(path.join(this_dir, d))}
 		content['.'] = [f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))]
-		content['..'] = [this_dir.split(self.files_path)[0]]
+		content['..'] = [this_dir.lstrip(self.files_path)]
 		return content
 
 	def send_files(self, router):
