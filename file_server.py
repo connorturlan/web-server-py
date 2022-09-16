@@ -1,4 +1,5 @@
 from web_server import WebServer, WebModule
+from urllib.parse import unquote
 from os import listdir, path
 from pathlib import Path
 import mimetypes
@@ -66,7 +67,7 @@ class FileServer(WebModule):
 			return True
 		# return the file specified in the request body.
 		elif params['method'] == 'get':
-			filepath = self.files_path + '/' + '/'.join(params[''])
+			filepath = unquote(self.files_path + '/' + '/'.join(params['']))
 
 			# send the file, if it exists.
 			self.send_file(router, filepath)
