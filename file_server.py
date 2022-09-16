@@ -110,12 +110,39 @@ class FileServer(WebModule):
 		
 
 class WebpageServer(WebModule):
+	def __init__(self, path='/', local_dir='./public'):
+		super().__init__(path)
+		self.local_dir = local_dir
+
 	def GET(self, router):
-		with open('./public/index.html', 'r') as page:
-			router.send_simple(page.read())
+		# format the request path to begin at the modules local directory.
+		path = 'index.html' if router.path.endswith('/') else router.path
+		request_page = self.local_dir + '/' + path
+		print('requested:', request_page)
+
+		# check that the page is within the domain.
+		if Path(self.local_dir) not in Path(request_page).parents:
+			print('access beyond bounds.')
+			router.send_error(403, "File unavailable")
+			return False
+
+		# try and serve the web resource.
+		try:
+			page = open(request_page, 'rb')
+		except IOError:
+			router.send_error(404, 'Page not found')
+		else:
+			mimetype = mimetypes.guess_type(request_page)
+			router.send({'Content-Type': ';'.join((str(m) for m in mimetype))}, page.read())
+
 		return True
+	
+	def do_METHOD(self, router, method):
+		# for all get methods, return this get.
+		if router.command == 'GET': return self.GET(router)
+		return super().do_METHOD(router, method)
 
 if __name__ == "__main__":
 	server = WebServer(sys.argv[1], int(sys.argv[2]))
-	server.add_module(WebpageServer(), FileServer("/files", "/method"))
+	server.add_module(FileServer("/files", "/method"), WebpageServer('/', '../file-server-vite/dist'))
 	server.start()
