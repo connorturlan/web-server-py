@@ -55,7 +55,6 @@ class FileServer(WebModule):
 	
 	def receive_files(self, router, filepath):
 		# validate that the request has a body.
-		print("reading...")
 		req_body = router.receive_body()
 		if not req_body: 
 			router.send_error(400, "No request body specified")
@@ -66,7 +65,7 @@ class FileServer(WebModule):
 		# print("=====  END  =====")
 
 		with open(filepath, 'wb') as file:
-			file.write(req_body)
+			file.write(bytearray(req_body))
 		print("write finished.")
 
 		router.send_simple("Accepted", 202)
@@ -141,7 +140,7 @@ class FileServer(WebModule):
 				'Access-Control-Allow-Methods': 'GET, POST, UPDATE, DELETE, OPTIONS', 
 				'Access-Control-Allow-Headers': '*'
 			}, 
-			''
+			b''
 		)
 		return True
 		
