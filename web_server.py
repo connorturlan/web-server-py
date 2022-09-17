@@ -31,6 +31,10 @@ class WebModule:
 	def DELETE(self, router):
 		router.send_simple("(DELETE) Hello, World!", 501)
 		return True
+
+	def OPTIONS(self, router):
+		router.send_simple("(OPTIONS) Hello, World!", 501)
+		return True
 	
 	def do_METHOD(self, router, method):
 		# if there are url params defined for this module, match the start of the path.
@@ -49,6 +53,9 @@ class WebModule:
 
 	def do_DELETE(self, router):
 		return self.do_METHOD(router, self.DELETE)
+	
+	def do_OPTIONS(self, router):
+		return self.do_METHOD(router, self.OPTIONS)
 
 """ 
 # a controller object for http requests.
@@ -100,6 +107,9 @@ class WebController(BaseHTTPRequestHandler):
 
 	def do_DELETE(self):
 		self.do_METHOD(WebModule.do_DELETE)
+	
+	def do_OPTIONS(self):
+		self.do_METHOD(WebModule.do_OPTIONS)
 
 """ 
 # a simple web server.

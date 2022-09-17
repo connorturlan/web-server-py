@@ -133,6 +133,17 @@ class FileServer(WebModule):
 		else:
 			router.send_error(400, "Invalid method")
 			return True
+
+	def OPTIONS(self, router):
+		# send a CORS header for preflight requests.
+		router.send(
+			{
+				'Access-Control-Allow-Methods': 'GET, POST, UPDATE, DELETE, OPTIONS', 
+				'Access-Control-Allow-Headers': '*'
+			}, 
+			''
+		)
+		return True
 		
 
 class WebpageServer(WebModule):
