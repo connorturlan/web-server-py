@@ -52,6 +52,25 @@ class FileServer(WebModule):
 			mimetype = mimetypes.guess_type(filepath)
 			router.send({'Content-Type': mimetype}, file.read())
 			return True
+	
+	def receive_files(self, router, filepath):
+		# validate that the request has a body.
+		print("reading...")
+		req_body = router.receive_body()
+		if not req_body: 
+			router.send_error(400, "No request body specified")
+			return True
+
+		print("===== START =====")
+		print(req_body)
+		print("=====  END  =====")
+
+		with open(filepath, 'wb') as file:
+			file.write(req_body)
+		print("write finished.")
+
+		router.send_simple("", 202)
+		return True
 
 	def GET(self, router):
 		# get the url parameters.
@@ -80,12 +99,14 @@ class FileServer(WebModule):
 	def POST(self, router):
 		# get the url parameters.
 		params = self.get_url_params(router.path)
+		print(router.path, params)
 		
-		# validate that there were params to check, otherwise it's just a simple get-all request.
-		if not params or 'method' not in params:
-			router.send_error(400, "Invalid method")
+		# validate that there were params to check, otherwise it's just a simple upload request.
+		if not params or 'method' not in params or not params['method']:
+			filepath = unquote(self.files_path + '/' + '/'.join(params['']))
+			self.receive_files(router, filepath)
 			return True
-		# return the get-all request.
+		# return the get request for the specified file.
 		elif params['method'] == 'get':
 			# validate that the request has a body.
 			req_body = str(router.receive_body(), 'utf-8')
@@ -103,6 +124,11 @@ class FileServer(WebModule):
 			filepath = req_json['filepath']
 			self.send_file(router, filepath)
 			return True
+		# return the get-all request.
+		elif params['method'] == 'upload':
+			filepath = unquote(self.files_path + '/' + '/'.join(params['']))
+			self.receive_files(router, filepath)
+			return False
 		# the specified method or parameter was invalid.
 		else:
 			router.send_error(400, "Invalid method")
