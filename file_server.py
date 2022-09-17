@@ -61,15 +61,15 @@ class FileServer(WebModule):
 			router.send_error(400, "No request body specified")
 			return True
 
-		print("===== START =====")
-		print(req_body)
-		print("=====  END  =====")
+		# print("===== START =====")
+		# print(req_body)
+		# print("=====  END  =====")
 
 		with open(filepath, 'wb') as file:
 			file.write(req_body)
 		print("write finished.")
 
-		router.send_simple("", 202)
+		router.send_simple("Accepted", 202)
 		return True
 
 	def GET(self, router):

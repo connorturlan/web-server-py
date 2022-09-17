@@ -83,9 +83,6 @@ class WebController(BaseHTTPRequestHandler):
 	def send_json(self, body, code=200):
 		self.send({'Content-Type': 'application/json'}, bytes(body, 'utf-8'), code)
 	
-	def send_text(self, body, code=200):
-		self.send_body(bytes(body, 'utf-8'))
-	
 	def do_METHOD(self, method):
 		for module in self.modules: 
 			if method(module, self): break
