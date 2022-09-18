@@ -26,10 +26,10 @@ class FileServer(WebModule):
 		content['..'] = [this_dir.lstrip(self.files_path)]
 		return content
 
-	def isChildPath(self, parent_path, child_path):
-		parent = path.realpath(parent_path)
+	def isChildPath(self, child_path):
+		parent = path.realpath(self.files_path)
 		child = path.realpath(child_path)
-		return Path(parent) not in Path(child).parents
+		return Path(parent) in Path(child).parents
 
 	def send_folders(self, router):
 		# check auth
@@ -61,7 +61,7 @@ class FileServer(WebModule):
 		filepath = self.files_path if not path else self.files_path + '/' + path
 
 		# check is subdir of files, i.e. not outside the safe share folder.
-		if Path(self.files_path) not in Path(filepath).parents:
+		if not self.isChildPath(filepath):
 			print('access beyond bounds.')
 			router.send_error(403, "File unavailable")
 			return False
@@ -103,7 +103,7 @@ class FileServer(WebModule):
 		filepath = self.files_path if not path else self.files_path + '/' + path
 
 		# check is subdir of files, i.e. not outside the safe share folder.
-		if self.isChildPath(self.files_path, filepath):
+		if not self.isChildPath(filepath):
 			print('access beyond bounds.')
 			router.send_error(403, "File unavailable")
 			return False
@@ -237,13 +237,18 @@ class WebpageServer(WebModule):
 		super().__init__(path, '')
 		self.local_dir = local_dir
 
+	def isChildPath(self, child_path):
+		parent = path.realpath(self.local_dir)
+		child = path.realpath(child_path)
+		return Path(parent) in Path(child).parents
+
 	def GET(self, router):
 		# format the request path to begin at the modules local directory.
 		path = 'index.html' if router.path.endswith('/') else router.path
 		request_page = self.local_dir + '/' + path
 
 		# check that the page is within the domain.
-		if Path(self.local_dir) not in Path(request_page).parents:
+		if not self.isChildPath(request_page):
 			print('access beyond bounds.')
 			router.send_error(403, "File unavailable")
 			return False
