@@ -1,4 +1,4 @@
-# Python Webserver (inc. File Server)
+# Python Web Server (inc. File Server)
 
 ## Setup
 
@@ -16,15 +16,15 @@ Create a modular web server that allows for adding independently running plugins
 
 ### File server
 
-The file server is to include full CRUD functionality for files within the specified shared folder.
+The file server is to include full **CRUD** functionality for files within the specified shared folder.
 
-1. CREATE - upload:
+1. **CREATE** - upload:
     - send files from the client's file system to the server's.
-2. READ - download:
+2. **READ** - download:
     - send files from the server's file system to the client's.
-3. UPDATE - cut/copy/paste:
+3. **UPDATE** - cut/copy/paste:
     - cut/copy files within the server's file system and paste them in another directory.
-4. DELETE - delete:
+4. **DELETE** - delete:
     - remove a file from the server's file system permanently.
 
 ## Implementation
@@ -50,11 +50,15 @@ Modules are executed in the order that they are added to the WebServer. If two m
 
 All modules at the end of their HTTP method implementation must return `True` or `False`, signalling a terminal or non-terminal module.
 
-#### HTTPController
+#### `HTTPController`
 
-#### WebServer
+#### `WebServer`
 
 ### File Server
+
+#### `FileServer`
+
+#### `WebpageServer`
 
 ## Known Issues
 
@@ -62,7 +66,7 @@ All modules at the end of their HTTP method implementation must return `True` or
 
 ## Future Plans
 
--   Remove default terminal behaviour for WebModule.
+-   Remove default terminal behaviour for `WebModule`.
 
 ## License
 

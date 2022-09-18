@@ -172,7 +172,7 @@ class FileServer(WebModule):
 
 class WebpageServer(WebModule):
 	def __init__(self, path='/', local_dir='./public'):
-		super().__init__(path)
+		super().__init__(path, '')
 		self.local_dir = local_dir
 
 	def GET(self, router):
