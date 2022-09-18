@@ -26,6 +26,11 @@ class FileServer(WebModule):
 		content['..'] = [this_dir.lstrip(self.files_path)]
 		return content
 
+	def isChildPath(self, parent_path, child_path):
+		parent = path.realpath(parent_path)
+		child = path.realpath(child_path)
+		return Path(parent) not in Path(child).parents
+
 	def send_folders(self, router):
 		# check auth
 		pass
@@ -91,19 +96,20 @@ class FileServer(WebModule):
 		router.send_simple("Accepted", 202)
 		return True
 	
-	def delete_file(self, router, filepath):
+	def delete_file(self, router, path):
 		# check auth
 		pass
 
 		filepath = self.files_path if not path else self.files_path + '/' + path
 
 		# check is subdir of files, i.e. not outside the safe share folder.
-		if Path(self.files_path) not in Path(filepath).parents:
+		if self.isChildPath(self.files_path, filepath):
 			print('access beyond bounds.')
 			router.send_error(403, "File unavailable")
 			return False
 
 		if os.path.exists(filepath):
+			print('removing:', filepath)
 			os.remove(filepath)
 			router.send_simple("Deleted", 204)
 		else:
@@ -171,7 +177,7 @@ class FileServer(WebModule):
 		elif params['method'] == 'upload':
 			filepath = unquote(self.files_path + '/' + '/'.join(params['']))
 			self.receive_files(router, filepath)
-			return False
+			return True
 		# the specified method or parameter was invalid.
 		else:
 			router.send_error(400, "Invalid method")
@@ -187,6 +193,11 @@ class FileServer(WebModule):
 			return True
 		# return the get-all request.
 		elif params['method'] == 'delete':
+			if params['']:
+				filepath = unquote('/'.join(params['']))
+				self.delete_file(router, filepath)
+				return True
+
 			# validate that the request has a body.
 			req_body = str(router.receive_body(), 'utf-8')
 			if not req_body: 
