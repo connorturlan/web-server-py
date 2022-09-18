@@ -70,7 +70,6 @@ class FileServer(WebModule):
 			return False
 		else:
 			# get the filetype and send to the user.
-			print('file found.')
 			mimetype = mimetypes.guess_type(filepath)
 			router.send({'Content-Type': mimetype}, file.read())
 			return True
@@ -88,7 +87,6 @@ class FileServer(WebModule):
 
 		with open(filepath, 'wb') as file:
 			file.write(bytearray(req_body))
-		print("write finished.")
 
 		router.send_simple("Accepted", 202)
 		return True
@@ -232,7 +230,6 @@ class WebpageServer(WebModule):
 		# format the request path to begin at the modules local directory.
 		path = 'index.html' if router.path.endswith('/') else router.path
 		request_page = self.local_dir + '/' + path
-		print('requested:', request_page)
 
 		# check that the page is within the domain.
 		if Path(self.local_dir) not in Path(request_page).parents:
