@@ -17,8 +17,15 @@ class FileServer(WebModule):
 		content['.'] = [f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))]
 		content['..'] = [this_dir.lstrip(self.files_path)]
 		return content
+	
+	def get_files_leaf(self, this_dir):
+		# generate a tree of a single folder in the share folder structure. 
+		content = {d: {} for d in listdir(this_dir) if path.isdir(path.join(this_dir, d))}
+		content['.'] = [f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))]
+		content['..'] = [this_dir.lstrip(self.files_path)]
+		return content
 
-	def send_files(self, router):
+	def send_folders(self, router):
 		# check auth
 		pass
 
@@ -29,9 +36,23 @@ class FileServer(WebModule):
 		router.send_json(json.dumps(tree))
 		return True
 
-	def send_file(self, router, filepath):
+	def send_folder(self, router, path):
 		# check auth
 		pass
+
+		# get the file structure
+		folderpath = self.files_path if not path else self.files_path + '/' + path
+		tree = self.get_files_leaf(folderpath)
+
+		# send the JSON tree
+		router.send_json(json.dumps(tree))
+		return True
+
+	def send_file(self, router, path):
+		# check auth
+		pass
+
+		filepath = self.files_path if not path else self.files_path + '/' + path
 
 		# check is subdir of files, i.e. not outside the safe share folder.
 		if Path(self.files_path) not in Path(filepath).parents:
@@ -77,15 +98,20 @@ class FileServer(WebModule):
 
 		# validate that there were params to check, otherwise it's just a simple get-all request.
 		if not params or 'method' not in params or not params['method']:
-			self.send_files(router)
+			self.send_folders(router)
 			return True
 		# return the get-all request.
 		elif params['method'] == 'all':
-			self.send_files(router)
+			self.send_folders(router)
+			return True
+		# return the request for a specific folder tree.
+		elif params['method'] == 'folder':
+			filepath = unquote('/'.join(params['']))
+			self.send_folder(router, filepath)
 			return True
 		# return the file specified in the request body.
 		elif params['method'] == 'get':
-			filepath = unquote(self.files_path + '/' + '/'.join(params['']))
+			filepath = unquote('/'.join(params['']))
 
 			# send the file, if it exists.
 			self.send_file(router, filepath)
@@ -98,7 +124,6 @@ class FileServer(WebModule):
 	def POST(self, router):
 		# get the url parameters.
 		params = self.get_url_params(router.path)
-		print(router.path, params)
 		
 		# validate that there were params to check, otherwise it's just a simple upload request.
 		if not params or 'method' not in params or not params['method']:
