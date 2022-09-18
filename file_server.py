@@ -18,7 +18,7 @@ class FileServer(WebModule):
 		content['..'] = [this_dir.lstrip(self.files_path)]
 		return content
 	
-	def get_files_leaf(self, this_dir):
+	def get_files_branch(self, this_dir):
 		# generate a tree of a single folder in the share folder structure. 
 		content = {d: {} for d in listdir(this_dir) if path.isdir(path.join(this_dir, d))}
 		content['.'] = [f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))]
@@ -42,7 +42,7 @@ class FileServer(WebModule):
 
 		# get the file structure
 		folderpath = self.files_path if not path else self.files_path + '/' + path
-		tree = self.get_files_leaf(folderpath)
+		tree = self.get_files_branch(folderpath)
 
 		# send the JSON tree
 		router.send_json(json.dumps(tree))
