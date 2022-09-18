@@ -5,10 +5,11 @@ from pathlib import Path
 import mimetypes
 import json
 import sys
+import os
 
 class FileServer(WebModule):
-	def __init__(self, path, params, files_path = './share'):
-		super().__init__(path, params)
+	def __init__(self, path, files_path = './share'):
+		super().__init__(path, '/method')
 		self.files_path = files_path
 	
 	def get_files_tree(self, this_dir):
@@ -91,6 +92,26 @@ class FileServer(WebModule):
 
 		router.send_simple("Accepted", 202)
 		return True
+	
+	def delete_file(self, router, filepath):
+		# check auth
+		pass
+
+		filepath = self.files_path if not path else self.files_path + '/' + path
+
+		# check is subdir of files, i.e. not outside the safe share folder.
+		if Path(self.files_path) not in Path(filepath).parents:
+			print('access beyond bounds.')
+			router.send_error(403, "File unavailable")
+			return False
+
+		if os.path.exists(filepath):
+			os.remove(filepath)
+			router.send_simple("Deleted", 204)
+		else:
+			router.send_error(404, "File doesn't exist")
+
+		return True
 
 	def GET(self, router):
 		# get the url parameters.
@@ -157,6 +178,38 @@ class FileServer(WebModule):
 		else:
 			router.send_error(400, "Invalid method")
 			return True
+	
+	def DELETE(self, router):
+		# get the url parameters.
+		params = self.get_url_params(router.path)
+
+		# validate that there was a method specified.
+		if not params or 'method' not in params or not params['method']:
+			router.send_error(400, "Unspecified method")
+			return True
+		# return the get-all request.
+		elif params['method'] == 'delete':
+			# validate that the request has a body.
+			req_body = str(router.receive_body(), 'utf-8')
+			if not req_body: 
+				router.send_error(400, "No request body specified")
+				return True
+
+			# validate that the request json has the filepath attribute.
+			req_json = json.loads(req_body)
+			if 'filepath' not in req_json: 
+				router.send_error(400, "No `filepath` specified")
+				return True
+
+			# delete the file if it exists.
+			filepath = req_json['filepath']
+			self.delete_file(router, filepath)
+			return True
+		# the specified method or parameter was invalid.
+		else:
+			router.send_error(400, "Invalid method")
+			return True
+		
 
 	def OPTIONS(self, router):
 		# send a CORS header for preflight requests.
@@ -205,5 +258,5 @@ class WebpageServer(WebModule):
 
 if __name__ == "__main__":
 	server = WebServer(sys.argv[1], int(sys.argv[2]))
-	server.add_module(FileServer("/files", "/method"), WebpageServer('/', '../file-server-vite/dist'))
+	server.add_module(FileServer("/files"), WebpageServer('/', '../file-server-vite/dist'))
 	server.start()

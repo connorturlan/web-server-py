@@ -68,6 +68,7 @@ All modules at the end of their HTTP method implementation must return `True` or
 
 -   Remove default terminal behaviour for `WebModule`.
 -   Implement PATCH and DELETE for the `FileServer` module.
+-   Implement OPTION for preflight CORS requests in the base module for simplicity.
 
 ## License
 
