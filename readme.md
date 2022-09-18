@@ -46,9 +46,9 @@ WebModule is a class that implement the functionality for the WebServer. It incl
 -   `path` denotes the url that will trigger the module.
 -   `url_params` signifies how parameters are mapped by the module. All parts of the url following the mapped params are accessible with the `''` key.
 
-Modules are executed in the order that they are added to the WebServer. If two modules share the same path, only the first will be run. In this case the first module is said to be **terminal**.
+Modules are executed in the order that they are added to the WebServer. If two modules share the same path, only the first will be run by default. In this case the first module is **terminal**.
 
-All modules at the end of their HTTP method implementation must return `True` or `False`, signalling a terminal or non-terminal module.
+All modules at the end of their HTTP method implementation must return `True` or `False`, signalling a terminal or non-terminal module. Non-terminal modules will not block the execution of any following modules.
 
 #### `HTTPController`
 
@@ -67,10 +67,11 @@ All modules at the end of their HTTP method implementation must return `True` or
 ## Future Plans
 
 -   Remove default terminal behaviour for `WebModule`.
+-   Implement PATCH and DELETE for the `FileServer` module.
 
 ## License
 
-No license required.
+CC by attribution non-commercial, derivatives allowed.
 
 ## Contributions
 
