@@ -60,7 +60,7 @@ class WebModule:
 """ 
 # a controller object for http requests.
 """
-class WebController(BaseHTTPRequestHandler):	
+class HTTPController(BaseHTTPRequestHandler):	
 	def init(self):
 		self.modules = []
 		return self
@@ -119,11 +119,11 @@ class WebServer:
 		self.hostname = hostname
 		self.port = port
 
-		self.http_server = HTTPServer((self.hostname, self.port), WebController)
-		self.router = WebController.init(self.http_server.RequestHandlerClass)
+		self.http_server = HTTPServer((self.hostname, self.port), HTTPController)
+		self.router = HTTPController.init(self.http_server.RequestHandlerClass)
 	
 	def add_module(self, *modules):
-		for module in modules: WebController.add_module(self.router, module)
+		for module in modules: HTTPController.add_module(self.router, module)
 
 	def start(self):
 		print("Web server running on %s:%d." % (self.hostname, self.port))
