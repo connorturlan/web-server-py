@@ -42,12 +42,12 @@ class FileServer(WebModule):
 	def get_files_tree(self, this_dir):
 		# generate a tree of the share folder structure.
 		content = {
-		    d: self.get_files_tree(path.join(this_dir, d))
-		    for d in listdir(this_dir)
-		    if path.isdir(path.join(this_dir, d))
+			d: self.get_files_tree(path.join(this_dir, d))
+			for d in listdir(this_dir)
+			if path.isdir(path.join(this_dir, d))
 		}
 		content["."] = [
-		    f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))
+			f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))
 		]
 		content[".."] = [this_dir.lstrip(self.local_files_path)]
 		return content
@@ -55,12 +55,12 @@ class FileServer(WebModule):
 	def get_files_branch(self, this_dir):
 		# generate a tree of a single folder in the share folder structure.
 		content = {
-		    d: {}
-		    for d in listdir(this_dir)
-		    if path.isdir(path.join(this_dir, d))
+			d: {}
+			for d in listdir(this_dir)
+			if path.isdir(path.join(this_dir, d))
 		}
 		content["."] = [
-		    f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))
+			f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))
 		]
 		content[".."] = [this_dir.lstrip(self.local_files_path)]
 		return content
@@ -120,6 +120,17 @@ class FileServer(WebModule):
 			router.send({"Content-Type": mimetype}, file.read())
 			return True
 
+	def create_folder(self, router, folder_path):
+		if os.path.exists(folder_path):
+			router.send_error(400, "Folder already exists")
+			return False
+
+		# create the directory if it doesn't exist.
+		os.mkdir(folder_path)
+
+		router.send_simple("Accepted", 202)
+		return True
+
 	def receive_files(self, router, file_path):
 		# validate that the request has a body.
 		req_body = router.receive_body()
@@ -127,15 +138,11 @@ class FileServer(WebModule):
 			router.send_error(400, "No request body specified")
 
 			return True
-
-		# print("===== START =====")
-		# print(req_body)
-		# print("=====  END  =====")
-
-		# create the directory if it doesn't exist.
+  
+		# check that the parent folder exists.
 		folder_path = os.path.dirname(file_path)
 		if not os.path.exists(folder_path):
-			os.mkdir(folder_path)
+			router.send_error(404, "Folder not found")
 
 		# write the request body to the
 		with open(file_path, "wb") as file:
@@ -165,7 +172,7 @@ class FileServer(WebModule):
 				os.remove(local_path)
 			else:
 				router.send_error(
-				    400, "Filepath refers to object that isn't folder nor file")
+					400, "Filepath refers to object that isn't folder nor file")
 			router.send_simple("Deleted", 204)
 		else:
 			router.send_error(404, "File doesn't exist")
@@ -211,10 +218,16 @@ class FileServer(WebModule):
 			router.send_error(400, "Unspecified method")
 
 			return True
-		# return the get-all request.
+		# 
+		elif params["method"] == "mkdir":
+			folder_path = unquote(self.local_files_path + "/" +
+								"/".join(params[""]))
+			self.create_folder(router, folder_path)
+			return True
+		# 
 		elif params["method"] == "upload":
 			file_path = unquote(self.local_files_path + "/" +
-			                    "/".join(params[""]))
+								"/".join(params[""]))
 			self.receive_files(router, file_path)
 			return True
 		# the specified method or parameter was invalid.
@@ -245,13 +258,13 @@ class FileServer(WebModule):
 	def OPTIONS(self, router):
 		# send a CORS header for preflight requests.
 		router.send(
-		    {
-		        "Access-Control-Allow-Methods":
-		            "GET, POST, UPDATE, DELETE, OPTIONS",
-		        "Access-Control-Allow-Headers":
-		            "*",
-		    },
-		    b"",
+			{
+				"Access-Control-Allow-Methods":
+					"GET, POST, UPDATE, DELETE, OPTIONS",
+				"Access-Control-Allow-Headers":
+					"*",
+			},
+			b"",
 		)
 		return True
 
@@ -286,7 +299,7 @@ class WebpageServer(WebModule):
 		else:
 			mimetype = mimetypes.guess_type(request_page)
 			router.send({"Content-Type": ";".join((str(m) for m in mimetype))},
-			            page.read())
+						page.read())
 
 		return True
 
@@ -300,5 +313,5 @@ class WebpageServer(WebModule):
 if __name__ == "__main__":
 	server = WebServer(sys.argv[1], int(sys.argv[2]))
 	server.add_module(FileServer("/files"),
-	                  WebpageServer("/", "../file-server-vite/dist"))
+					  WebpageServer("/", "../file-server-vite/dist"))
 	server.start()

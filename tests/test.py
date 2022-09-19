@@ -11,7 +11,7 @@ class FileServerGetTests(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(self):
-		# requests.post('http://localhost/files/mkdir/.test', 'Hello, World!')
+		requests.post('http://localhost/files/mkdir/.test')
 		requests.post('http://localhost/files/upload/.test/.test_success.txt',
 		              'Hello, World!')
 
@@ -69,7 +69,7 @@ class FileServerPostTests(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(self):
-		#requests.post('http://localhost/files/mkdir/.test', 'Hello, World!')
+		requests.post('http://localhost/files/mkdir/.test')
 		requests.post('http://localhost/files/upload/.test/.test_success.txt',
 		              'Hello, World!')
 
@@ -78,7 +78,7 @@ class FileServerPostTests(unittest.TestCase):
 		requests.delete('http://localhost/files/delete/.test')
 
 	def test_post_folder_succeeds(self):
-		response = requests.post('http://localhost/files/mkdir/.test')
+		response = requests.post('http://localhost/files/mkdir/.upload')
 
 		self.assertEqual(response.status_code, 202)
 
@@ -104,7 +104,7 @@ class FileServerDeleteTests(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(self):
-		#requests.post('http://localhost/files/mkdir/.test', 'Hello, World!')
+		requests.post('http://localhost/files/mkdir/.test')
 		requests.post('http://localhost/files/upload/.test/.test_success.txt',
 		              'Hello, World!')
 
