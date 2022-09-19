@@ -1,5 +1,6 @@
 share*
-public
-__pycache__
-.vscode
+**/public
+**/__pycache__
+**/.vscode
 .env
+.style.yapf
