@@ -1,4 +1,4 @@
-from modules.web_server import WebServer, WebModule
+from src.web_server import WebServer, WebModule
 from pathlib import Path
 from os import path
 import mimetypes
