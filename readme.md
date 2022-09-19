@@ -8,6 +8,8 @@ This repository implements a Webpage host and File Server at the specified `host
 
 This servers as an example of what this python module can be used to create.
 
+requires `requests`, `dotenv`
+
 ## MVP
 
 ### Web Server
@@ -20,6 +22,7 @@ The file server is to include full **CRUD** functionality for files within the s
 
 1. **CREATE** - upload:
     - send files from the client's file system to the server's.
+    - create directories on the server size.
 2. **READ** - download:
     - send files from the server's file system to the client's.
 3. **UPDATE** - cut/copy/paste:
@@ -67,10 +70,12 @@ All modules at the end of their HTTP method implementation must return `True` or
 ## Future Plans
 
 -   Remove default terminal behaviour for `WebModule`.
+-   Implement server-side mkdir.
 -   Implement PATCH and DELETE for the `FileServer` module.
 -   Implement OPTION for preflight CORS requests in the base module for simplicity.
 -   Allow toggling and configuring CORS within the `WebModule` or `HTTPController`.
 -   Use `os.path.exists` instead of `try-catch` for existence checking.
+-   Add `optparse` for file server.
 
 ## License
 

@@ -1,4 +1,5 @@
-share
+share*
 public
 __pycache__
 .vscode
+.env
