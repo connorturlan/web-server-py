@@ -1,36 +1,12 @@
-from decimal import InvalidOperation
-from genericpath import isdir
-from http.client import UNAUTHORIZED
-import shutil
-from web_server import WebServer, WebModule
+from modules.web_server import WebServer, WebModule
 from urllib.parse import unquote
 from os import listdir, path
 from pathlib import Path
 import mimetypes
+import shutil
 import json
 import sys
 import os
-
-
-# define custom errors for use in testing.
-class AccessOutOfBoundsError(Exception):
-	pass
-
-
-class HTTPRequestInvalidError(Exception):
-	pass
-
-
-class HTTPRequestNoBodyError(Exception):
-	pass
-
-
-class MethodUnspecifiedError(Exception):
-	pass
-
-
-class MethodInvalidError(Exception):
-	pass
 
 
 class FileServer(WebModule):
@@ -128,7 +104,7 @@ class FileServer(WebModule):
 		# create the directory if it doesn't exist.
 		os.mkdir(folder_path)
 
-		router.send_simple("Accepted", 202)
+		router.send_simple("Folder created", 201)
 		return True
 
 	def receive_files(self, router, file_path):
@@ -148,7 +124,7 @@ class FileServer(WebModule):
 		with open(file_path, "wb") as file:
 			file.write(bytearray(req_body))
 
-		router.send_simple("Accepted", 202)
+		router.send_simple("File created", 201)
 		return True
 
 	def delete_file(self, router, file_path):
@@ -269,49 +245,8 @@ class FileServer(WebModule):
 		return True
 
 
-class WebpageServer(WebModule):
-
-	def __init__(self, path="/", local_dir="./public"):
-		super().__init__(path, "")
-		self.local_dir = local_dir
-
-	def isChildPath(self, child_path):
-		parent = path.realpath(self.local_dir)
-		child = path.realpath(child_path)
-		return Path(parent) in Path(child).parents
-
-	def GET(self, router):
-		# format the request path to begin at the modules local directory.
-		path = "index.html" if router.path.endswith("/") else router.path
-		request_page = self.local_dir + "/" + path
-
-		# check that the page is within the domain.
-		if not self.isChildPath(request_page):
-			print("access beyond bounds.")
-			router.send_error(403, "File unavailable")
-			return False
-
-		# try and serve the web resource.
-		try:
-			page = open(request_page, "rb")
-		except IOError:
-			router.send_error(404, "Page not found")
-		else:
-			mimetype = mimetypes.guess_type(request_page)
-			router.send({"Content-Type": ";".join((str(m) for m in mimetype))},
-						page.read())
-
-		return True
-
-	def do_METHOD(self, router, method):
-		# for all get methods, return this get.
-		if router.command == "GET":
-			return self.GET(router)
-		return super().do_METHOD(router, method)
-
 
 if __name__ == "__main__":
 	server = WebServer(sys.argv[1], int(sys.argv[2]))
-	server.add_module(FileServer("/files"),
-					  WebpageServer("/", "../file-server-vite/dist"))
+	server.add_module(FileServer("/files", '../share'))
 	server.start()

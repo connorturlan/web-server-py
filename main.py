@@ -1,5 +1,6 @@
-from file_server import FileServer, WebpageServer
-from web_server import WebServer
+from modules.webpage_server import WebpageServer
+from modules.file_server import FileServer
+from modules.web_server import WebServer
 import sys
 
 if __name__ == "__main__":
