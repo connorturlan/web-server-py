@@ -1,4 +1,4 @@
-from modules.web_server import WebServer, WebModule
+from web_server import WebServer, WebModule
 from urllib.parse import unquote
 from os import listdir, path
 from pathlib import Path
