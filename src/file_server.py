@@ -112,7 +112,6 @@ class FileServer(WebModule):
 		req_body = router.receive_body()
 		if not req_body:
 			router.send_error(400, "No request body specified")
-
 			return True
   
 		# check that the parent folder exists.
@@ -150,6 +149,46 @@ class FileServer(WebModule):
 				router.send_error(
 					400, "Filepath refers to object that isn't folder nor file")
 			router.send_simple("Deleted", 204)
+		else:
+			router.send_error(404, "File doesn't exist")
+
+		return True
+
+	def copy_file(self, router, origin, destination):
+		# check auth
+		pass
+
+		local_origin = self.local_files_path if not origin else self.local_files_path + "/" + origin
+		local_destination = self.local_files_path if not destination else self.local_files_path + "/" + destination
+
+		# check is subdir of files, i.e. not outside the safe share folder.
+		if not self.isChildPath(local_origin) or not self.isChildPath(local_destination):
+			print("access beyond bounds.")
+			router.send_error(403, "File unavailable")
+			return False
+
+		# check that the destination parent folder exists.
+		if not os.path.exists(os.path.dirname(local_destination)):
+			router.send_error(404, "Source not found")
+			return False
+
+		# check that the origin and destination are different.
+		print(local_origin, local_destination)
+		if local_origin == local_destination:
+			router.send_error(400, "Source and destination must be different")
+			return False
+
+		# ensure the origin exists.
+		if os.path.exists(local_origin):
+			if path.isdir(local_origin):
+				shutil.copytree(local_origin, local_destination)
+			elif path.isfile(local_origin):
+				shutil.copyfile(local_origin, local_destination)
+			else:
+				router.send_error(
+					400, "Filepath refers to object that isn't folder nor file")
+			
+			router.send_simple("Copied", 202)
 		else:
 			router.send_error(404, "File doesn't exist")
 
@@ -229,6 +268,41 @@ class FileServer(WebModule):
 		else:
 			router.send_error(400, "Incorrect method")
 
+			return True
+	
+	def PATCH(self, router):
+		# get the url parameters.
+		params = self.get_url_params(router.path)
+
+		# validate that there was a method specified.
+		if not params or "method" not in params or not params["method"]:
+			router.send_error(400, "Unspecified method")
+			return True
+		# return the get-all request.
+		elif params["method"] == "copy":
+			# validate that the request has a body.
+			req_body = router.receive_body()
+			if not req_body:
+				router.send_error(400, "No request body specified")
+				return True
+			
+			# validate that the req_body is json.
+			req_json = json.loads(req_body)
+			if not req_json:
+				router.send_error(400, "No request body specified (json)")
+				return True
+			# validate that the req_json contains the file destination.
+			elif 'destination' not in req_json:
+				router.send_error(400, "Invalid request body")
+				return True
+
+			file_origin = unquote("/".join(params[""]))
+			file_destination = req_json['destination']
+			self.copy_file(router, file_origin, file_destination)
+			return True
+		# the specified method or parameter was invalid.
+		else:
+			router.send_error(400, "Incorrect method")
 			return True
 
 	def OPTIONS(self, router):
