@@ -1,28 +1,10 @@
 import unittest
 from src.file_server import FileServer
 import os, shutil
-from .common import DummyRouter
+from .common import DummyRouter, FileServerCommonTest
 
 
-class FileServerCopyUnitTests(unittest.TestCase):
-
-	@classmethod
-	def setUpClass(self):
-		self.root = './.safe harbour/'
-
-		# create a testing dir, wrapped in a safe folder so we don't accidentally delete tests.
-		os.mkdir(self.root)
-		os.mkdir(self.root + '.testing')
-		os.mkdir(self.root + '.canary')
-
-		self.server = FileServer('/files', self.root + '.testing')
-		self.dummy_router = DummyRouter()
-
-	@classmethod
-	def tearDownClass(self):
-		# remove the testing directories.
-		shutil.rmtree('./.safe harbour')
-		shutil.rmtree('./.canary')
+class FileServerCopyUnitTests(FileServerCommonTest):
 
 	def test(self):
 		self.assertTrue(False)

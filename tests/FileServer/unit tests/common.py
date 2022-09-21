@@ -1,10 +1,17 @@
-import unittest
+import unittest, os, shutil
 from src.file_server import FileServer
-import os, shutil
-from .common import DummyRouter
 
 
-class FileServerDeleteUnitTests(unittest.TestCase):
+class DummyRouter(object):
+
+	def noop(*args, **kwargs):
+		pass
+
+	def __getattr__(self, __name: str):
+		return self.noop
+
+
+class FileServerCommonTest(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(self):
@@ -15,6 +22,10 @@ class FileServerDeleteUnitTests(unittest.TestCase):
 		os.mkdir(self.root + '.testing')
 		os.mkdir(self.root + '.canary')
 
+		# create a test file.
+		os.write(self.root + '.testing/test.txt',
+		         bytes('hello, world!\n', 'utf-8'))
+
 		self.server = FileServer('/files', self.root + '.testing')
 		self.dummy_router = DummyRouter()
 
@@ -24,17 +35,6 @@ class FileServerDeleteUnitTests(unittest.TestCase):
 		shutil.rmtree('./.safe harbour')
 		shutil.rmtree('./.canary')
 
-	def test(self):
-		self.assertTrue(False)
 
-	# test folder delete succeeds
-	# test folder delete fails - folder doesn't exist
-	# test folder delete fails - folder not in share directory
-
-	# test file delete succeeds
-	# test file delete fails - file doesn't exist
-	# test file delete fails - file not in share directory
-
-
-if __name__ == '__main__':
-	unittest.main()
+if __name__ == "__main__":
+	print("common classes for unit tests must be imported for use.")
