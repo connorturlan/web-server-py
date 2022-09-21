@@ -108,21 +108,16 @@ class FileServer(WebModule):
 		router.send_simple("Folder created", 201)
 		return True
 
-	def receive_files(self, router, file_path):
-		# validate that the request has a body.
-		req_body = router.receive_body()
-		if not req_body:
-			router.send_error(400, "No request body specified")
-			return True
-
+	def receive_files(self, router, file_path, file_body):
 		# check that the parent folder exists.
 		folder_path = os.path.dirname(file_path)
 		if not os.path.exists(folder_path):
 			router.send_error(404, "Folder not found")
+			return False
 
 		# write the request body to the
 		with open(file_path, "wb") as file:
-			file.write(bytearray(req_body))
+			file.write(bytearray(file_body))
 
 		# send a successful status code.
 		router.send_simple("File created", 201)
@@ -259,9 +254,16 @@ class FileServer(WebModule):
 			return True
 		#
 		elif params["method"] == "upload":
+			# validate that the request has a body.
+			file_body = router.receive_body()
+			if not file_body:
+				router.send_error(400, "No request body specified")
+				return True
+
+			# get the file_path.
 			file_path = unquote(self.local_files_path + "/" +
 			                    "/".join(params[""]))
-			self.receive_files(router, file_path)
+			self.receive_files(router, file_path, file_body)
 			return True
 		# the specified method or parameter was invalid.
 		else:
