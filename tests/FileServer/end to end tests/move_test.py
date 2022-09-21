@@ -70,39 +70,39 @@ class FileServerMoveTests(unittest.TestCase):
 
 	# file move failing tests.
 
-	def test_delete_file_fails_unspecifiedMethod(self):
+	def test_move_file_fails_unspecifiedMethod(self):
 		response = send_patch('http://localhost/files')
 
 		self.assertEqual(response.status_code, 400)
 
-	def test_delete_file_fails_incorrectMethod(self):
+	def test_move_file_fails_incorrectMethod(self):
 		response = send_patch('http://localhost/files/get')
 
 		self.assertEqual(response.status_code, 400)
 
-	def test_delete_file_fails_fileNotFound(self):
+	def test_move_file_fails_fileNotFound(self):
 		response = send_patch('http://localhost/files/move/.test/.ghost.shell',
 		                      {"destination": "./test/.ghost.shell"})
 
 		self.assertEqual(response.status_code, 404)
 
-	def test_delete_file_fails_unspecifiedFile(self):
+	def test_move_file_fails_unspecifiedFile(self):
 		response = send_patch('http://localhost/files/move')
 
 		self.assertEqual(response.status_code, 400)
 
-	def test_delete_file_fails_missingBody(self):
+	def test_move_file_fails_missingBody(self):
 		response = send_patch('http://localhost/files/move/.test/.file.txt')
 
 		self.assertEqual(response.status_code, 400)
 
-	def test_delete_file_fails_invalidBody(self):
+	def test_move_file_fails_invalidBody(self):
 		response = send_patch('http://localhost/files',
 		                      {"to": ".test_dest/file.txt"})
 
 		self.assertEqual(response.status_code, 400)
 
-	def test_delete_file_fails_destinationFolderDoesntExist(self):
+	def test_move_file_fails_destinationFolderDoesntExist(self):
 		response = send_patch('http://localhost/files/move/.test/.file.txt',
 		                      {"destination": "./ghost/.file.txt"})
 
