@@ -140,7 +140,6 @@ class FileServer(WebModule):
 			return False
 
 		if os.path.exists(local_path):
-			print("removing:", local_path)
 			if path.isdir(local_path):
 				shutil.rmtree(local_path)
 			elif path.isfile(local_path):
@@ -173,7 +172,6 @@ class FileServer(WebModule):
 			return False
 
 		# check that the origin and destination are different.
-		print(local_origin, local_destination)
 		if local_origin == local_destination:
 			router.send_error(400, "Source and destination must be different")
 			return False
