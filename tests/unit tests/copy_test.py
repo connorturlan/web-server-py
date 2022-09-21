@@ -4,15 +4,18 @@ import os, shutil
 from .common import DummyRouter
 
 
-class FileServerServerSideTests(unittest.TestCase):
+class FileServerCopyUnitTests(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(self):
-		# create a testing dir, wrapped in a safe folder so we don't accidentally delete tests.
-		os.mkdir('./.safe harbour/.testing')
-		os.mkdir('./.canary')
+		self.root = './.safe harbour/'
 
-		self.server = FileServer('/files', './.safe harbour/.testing')
+		# create a testing dir, wrapped in a safe folder so we don't accidentally delete tests.
+		os.mkdir(self.root)
+		os.mkdir(self.root + '.testing')
+		os.mkdir(self.root + '.canary')
+
+		self.server = FileServer('/files', self.root + '.testing')
 		self.dummy_router = DummyRouter()
 
 	@classmethod

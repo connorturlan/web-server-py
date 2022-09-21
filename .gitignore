@@ -1,4 +1,5 @@
 .ignore
+.safe harbour
 share*
 **/public
 **/__pycache__

@@ -4,15 +4,18 @@ import os, shutil
 from .common import DummyRouter
 
 
-class FileServerServerSideTests(unittest.TestCase):
+class FileServerGeneralUnitTests(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(self):
-		# create a testing dir, wrapped in a safe folder so we don't accidentally delete tests.
-		os.mkdir('./.safe harbour/.testing')
-		os.mkdir('./.canary')
+		self.root = './.safe harbour/'
 
-		self.server = FileServer('/files', './.safe harbour/.testing')
+		# create a testing dir, wrapped in a safe folder so we don't accidentally delete tests.
+		os.mkdir(self.root)
+		os.mkdir(self.root + '.testing')
+		os.mkdir(self.root + '.canary')
+
+		self.server = FileServer('/files', self.root + '.testing')
 		self.dummy_router = DummyRouter()
 
 	@classmethod
@@ -23,9 +26,9 @@ class FileServerServerSideTests(unittest.TestCase):
 
 	def test_folder_creation_success(self):
 		success = self.server.create_folder(self.dummy_router,
-		                                    '.testing/create')
+		                                    self.root + '.testing/create')
 		self.assertTrue(success)
-		self.assertTrue(os.path.exists('./.testing/create'))
+		self.assertTrue(os.path.exists(self.root + '.testing/create'))
 
 	# test get file tree
 	# test get file branch
