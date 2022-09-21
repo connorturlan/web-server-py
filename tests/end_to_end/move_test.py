@@ -5,10 +5,12 @@ import requests
 config = dotenv_values("../.env")
 print(config) """
 
+
 def send_patch(url, body=''):
 	return requests.patch(url, json.dumps(body))
 
-class FileServermoveTests(unittest.TestCase):
+
+class FileServerMoveTests(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(self):
@@ -24,27 +26,24 @@ class FileServermoveTests(unittest.TestCase):
 		requests.delete('http://localhost/files/delete/.test_dest')
 
 	# folder move success tests.
- 
+
 	def test_move_file_succeeds(self):
 		requests.post('http://localhost/files/upload/.test/.file.txt',
 		              'Weeeeeeeeeeeee!')
-		response = send_patch('http://localhost/files/move/.test/.file.txt', {
-			"destination": ".test_dest/.file.txt"
-		})
+		response = send_patch('http://localhost/files/move/.test/.file.txt',
+		                      {"destination": ".test_dest/.file.txt"})
 
 		self.assertEqual(response.status_code, 202)
 
 	def test_move_file_fails_sameSource(self):
-		response = send_patch('http://localhost/files/move/.test/.file.txt', {
-			"destination": ".test/.file.txt"
-		})
+		response = send_patch('http://localhost/files/move/.test/.file.txt',
+		                      {"destination": ".test/.file.txt"})
 
 		self.assertEqual(response.status_code, 400)
- 
+
 	def test_move_file_renamingSucceeds(self):
-		response = send_patch('http://localhost/files/move/.test/.file.txt', {
-			"destination": ".test/.same_file.txt"
-		})
+		response = send_patch('http://localhost/files/move/.test/.file.txt',
+		                      {"destination": ".test/.same_file.txt"})
 
 		self.assertEqual(response.status_code, 202)
 
@@ -52,23 +51,20 @@ class FileServermoveTests(unittest.TestCase):
 
 	def test_move_folder_succeeds(self):
 		requests.post('http://localhost/files/mkdir/.test')
-		response = send_patch('http://localhost/files/move/.test', {
-			"destination": '.test_dest/.subdir'
-		})
+		response = send_patch('http://localhost/files/move/.test',
+		                      {"destination": '.test_dest/.subdir'})
 
 		self.assertEqual(response.status_code, 202)
 
 	def test_move_folder_fails_sameSource(self):
-		response = send_patch('http://localhost/files/move/.test', {
-			"destination": '.test'
-		})
+		response = send_patch('http://localhost/files/move/.test',
+		                      {"destination": '.test'})
 
 		self.assertEqual(response.status_code, 400)
 
 	def test_move_folder_renamingSucceeds(self):
-		response = send_patch('http://localhost/files/move/.test/.subdir', {
-			"destination": '.test_dest/.same_subdir'
-		})
+		response = send_patch('http://localhost/files/move/.test/.subdir',
+		                      {"destination": '.test_dest/.same_subdir'})
 
 		self.assertEqual(response.status_code, 202)
 
@@ -85,9 +81,8 @@ class FileServermoveTests(unittest.TestCase):
 		self.assertEqual(response.status_code, 400)
 
 	def test_delete_file_fails_fileNotFound(self):
-		response = send_patch('http://localhost/files/move/.test/.ghost.shell', {
-			"destination": "./test/.ghost.shell"
-		})
+		response = send_patch('http://localhost/files/move/.test/.ghost.shell',
+		                      {"destination": "./test/.ghost.shell"})
 
 		self.assertEqual(response.status_code, 404)
 
@@ -102,16 +97,14 @@ class FileServermoveTests(unittest.TestCase):
 		self.assertEqual(response.status_code, 400)
 
 	def test_delete_file_fails_invalidBody(self):
-		response = send_patch('http://localhost/files', {
-			"to": ".test_dest/file.txt"
-		})
+		response = send_patch('http://localhost/files',
+		                      {"to": ".test_dest/file.txt"})
 
 		self.assertEqual(response.status_code, 400)
 
 	def test_delete_file_fails_destinationFolderDoesntExist(self):
-		response = send_patch('http://localhost/files/move/.test/.file.txt', {
-			"destination": "./ghost/.file.txt"
-		})
+		response = send_patch('http://localhost/files/move/.test/.file.txt',
+		                      {"destination": "./ghost/.file.txt"})
 
 		self.assertEqual(response.status_code, 404)
 

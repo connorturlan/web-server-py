@@ -18,12 +18,12 @@ class FileServer(WebModule):
 	def get_files_tree(self, this_dir):
 		# generate a tree of the share folder structure.
 		content = {
-			d: self.get_files_tree(path.join(this_dir, d))
-			for d in listdir(this_dir)
-			if path.isdir(path.join(this_dir, d))
+		    d: self.get_files_tree(path.join(this_dir, d))
+		    for d in listdir(this_dir)
+		    if path.isdir(path.join(this_dir, d))
 		}
 		content["."] = [
-			f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))
+		    f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))
 		]
 		content[".."] = [this_dir.lstrip(self.local_files_path)]
 		return content
@@ -31,12 +31,12 @@ class FileServer(WebModule):
 	def get_files_branch(self, this_dir):
 		# generate a tree of a single folder in the share folder structure.
 		content = {
-			d: {}
-			for d in listdir(this_dir)
-			if path.isdir(path.join(this_dir, d))
+		    d: {}
+		    for d in listdir(this_dir)
+		    if path.isdir(path.join(this_dir, d))
 		}
 		content["."] = [
-			f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))
+		    f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))
 		]
 		content[".."] = [this_dir.lstrip(self.local_files_path)]
 		return content
@@ -104,6 +104,7 @@ class FileServer(WebModule):
 		# create the directory if it doesn't exist.
 		os.mkdir(folder_path)
 
+		# send a successful status code.
 		router.send_simple("Folder created", 201)
 		return True
 
@@ -113,7 +114,7 @@ class FileServer(WebModule):
 		if not req_body:
 			router.send_error(400, "No request body specified")
 			return True
-  
+
 		# check that the parent folder exists.
 		folder_path = os.path.dirname(file_path)
 		if not os.path.exists(folder_path):
@@ -123,6 +124,7 @@ class FileServer(WebModule):
 		with open(file_path, "wb") as file:
 			file.write(bytearray(req_body))
 
+		# send a successful status code.
 		router.send_simple("File created", 201)
 		return True
 
@@ -139,20 +141,26 @@ class FileServer(WebModule):
 
 			return False
 
-		if os.path.exists(local_path):
-			if path.isdir(local_path):
-				shutil.rmtree(local_path)
-			elif path.isfile(local_path):
-				os.remove(local_path)
-			else:
-				router.send_error(
-					400, "Filepath refers to object that isn't folder nor file")
-			router.send_simple("Deleted", 204)
-		else:
+		# check that the file exists.
+		if not os.path.exists(local_path):
 			router.send_error(404, "File doesn't exist")
 
+		# remove the directory.
+		if path.isdir(local_path):
+			shutil.rmtree(local_path)
+		# remote the file.
+		elif path.isfile(local_path):
+			os.remove(local_path)
+		# the file is neither a file or folder send an error.
+		else:
+			router.send_error(
+			    400, "Filepath refers to object that isn't folder nor file")
+			return False
+
+		# send a successful status code.
+		router.send_simple("Deleted", 204)
 		return True
-	
+
 	def shuttle_file(self, router, origin, destination, doCopy=True):
 		# check auth
 		pass
@@ -161,7 +169,8 @@ class FileServer(WebModule):
 		local_destination = self.local_files_path if not destination else self.local_files_path + "/" + destination
 
 		# check is subdir of files, i.e. not outside the safe share folder.
-		if not self.isChildPath(local_origin) or not self.isChildPath(local_destination):
+		if not self.isChildPath(local_origin) or not self.isChildPath(
+		    local_destination):
 			print("access beyond bounds.")
 			router.send_error(403, "File unavailable")
 			return False
@@ -185,8 +194,9 @@ class FileServer(WebModule):
 					shutil.copyfile(local_origin, local_destination)
 				else:
 					router.send_error(
-						400, "Filepath refers to object that isn't folder nor file")
-				
+					    400,
+					    "Filepath refers to object that isn't folder nor file")
+
 				router.send_simple("Copied", 201)
 			else:
 				shutil.move(local_origin, local_destination)
@@ -196,10 +206,9 @@ class FileServer(WebModule):
 
 		return True
 
-
 	def copy_file(self, router, origin, destination):
 		return self.shuttle_file(router, origin, destination, True)
-	
+
 	def move_file(self, router, origin, destination):
 		return self.shuttle_file(router, origin, destination, False)
 
@@ -242,16 +251,16 @@ class FileServer(WebModule):
 			router.send_error(400, "Unspecified method")
 
 			return True
-		# 
+		#
 		elif params["method"] == "mkdir":
 			folder_path = unquote(self.local_files_path + "/" +
-								"/".join(params[""]))
+			                      "/".join(params[""]))
 			self.create_folder(router, folder_path)
 			return True
-		# 
+		#
 		elif params["method"] == "upload":
 			file_path = unquote(self.local_files_path + "/" +
-								"/".join(params[""]))
+			                    "/".join(params[""]))
 			self.receive_files(router, file_path)
 			return True
 		# the specified method or parameter was invalid.
@@ -278,7 +287,7 @@ class FileServer(WebModule):
 			router.send_error(400, "Incorrect method")
 
 			return True
-	
+
 	def PATCH(self, router):
 		# get the url parameters.
 		params = self.get_url_params(router.path)
@@ -288,7 +297,7 @@ class FileServer(WebModule):
 		if not params or "method" not in params or not params["method"]:
 			router.send_error(400, "Unspecified method")
 			return True
-		
+
 		file_origin = unquote("/".join(params[""]))
 
 		# get the requested file destination.
@@ -297,7 +306,7 @@ class FileServer(WebModule):
 		if not req_body:
 			router.send_error(400, "No request body specified")
 			return True
-		
+
 		# validate that the req_body is json.
 		req_json = json.loads(req_body)
 		if not req_json:
@@ -327,16 +336,15 @@ class FileServer(WebModule):
 	def OPTIONS(self, router):
 		# send a CORS header for preflight requests.
 		router.send(
-			{
-				"Access-Control-Allow-Methods":
-					"GET, POST, UPDATE, DELETE, OPTIONS",
-				"Access-Control-Allow-Headers":
-					"*",
-			},
-			b"",
+		    {
+		        "Access-Control-Allow-Methods":
+		            "GET, POST, UPDATE, DELETE, OPTIONS",
+		        "Access-Control-Allow-Headers":
+		            "*",
+		    },
+		    b"",
 		)
 		return True
-
 
 
 if __name__ == "__main__":
