@@ -33,6 +33,8 @@ class FileServerGeneralUnitTests(FileServerCommonTest):
 		test_tree = self.server.get_files_branch(self.root + '.testing/folder')
 		valid_tree = {'.': ['file.txt'], '..': ['folder']}
 
+		print('xyz')
+
 		self.assertIsNotNone(test_tree)
 		self.assertDictEqual(valid_tree, test_tree)
 

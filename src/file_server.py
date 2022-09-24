@@ -25,7 +25,9 @@ class FileServer(WebModule):
 		content["."] = [
 		    f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))
 		]
-		content[".."] = [this_dir.lstrip(self.local_files_path)]
+		content[".."] = [
+		    this_dir.lstrip(self.local_files_path).replace('\\', '/')
+		]
 		return content
 
 	def get_files_branch(self, this_dir):
@@ -38,7 +40,9 @@ class FileServer(WebModule):
 		content["."] = [
 		    f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))
 		]
-		content[".."] = [this_dir.lstrip(self.local_files_path)]
+		content[".."] = [
+		    this_dir.lstrip(self.local_files_path).replace('\\', '/')
+		]
 		return content
 
 	def isChildPath(self, child_path):
