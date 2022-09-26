@@ -15,7 +15,7 @@ class FileServer(WebModule):
 		super().__init__(path, "/method")
 		self.local_files_path = files_path.replace('\\', '/')
 
-	def get_files_tree(self, this_dir):
+	def get_files_tree(self, this_dir='\\'):
 		# get the specific path
 		dir_path = self.local_files_path + this_dir
 		# generate a tree of the share folder structure.
@@ -32,7 +32,7 @@ class FileServer(WebModule):
 		]
 		return content
 
-	def get_files_branch(self, this_dir):
+	def get_files_branch(self, this_dir='\\'):
 		# get the specific path
 		dir_path = self.local_files_path + this_dir
 		# generate a tree of the share folder structure.
@@ -59,7 +59,7 @@ class FileServer(WebModule):
 		pass
 
 		# get the file structure
-		tree = self.get_files_tree(self.local_files_path)
+		tree = self.get_files_tree()
 
 		# send the JSON tree
 		router.send_json(json.dumps(tree))
@@ -70,7 +70,7 @@ class FileServer(WebModule):
 		pass
 
 		# get the file structure
-		local_path = self.local_files_path if not folder_path else self.local_files_path + "/" + folder_path
+		local_path = folder_path
 		tree = self.get_files_branch(local_path)
 
 		# send the JSON tree
