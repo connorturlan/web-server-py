@@ -24,8 +24,9 @@ class FileServerCommonTest(unittest.TestCase):
 		self.files = self.root + '.testing\\'
 
 		# create a testing dir, wrapped in a safe folder so we don't accidentally delete tests.
-		mkdir(self.root)
 		mkdir('.\\.canary\\')
+		mkdir(self.root)
+		mkdir(self.root + '.not in testing\\')
 		mkdir(self.files)
 		mkdir(self.files + 'folder\\')
 		# mkdir(os.path.join(self.root, '.testing', 'folder2'))
