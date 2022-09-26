@@ -4,7 +4,7 @@
 
 This repository implements a Webpage host and File Server at the specified `hostname` with:
 
-> `main.py <hostname> <port>`
+```main.py <hostname> <port>```
 
 This servers as an example of what this python module can be used to create.
 
