@@ -13,42 +13,46 @@ class FileServer(WebModule):
 
 	def __init__(self, path, files_path="./share"):
 		super().__init__(path, "/method")
-		self.local_files_path = files_path
+		self.local_files_path = files_path.replace('\\', '/')
 
 	def get_files_tree(self, this_dir):
+		# get the specific path
+		dir_path = self.local_files_path + this_dir
 		# generate a tree of the share folder structure.
 		content = {
 		    d: self.get_files_tree(path.join(this_dir, d))
-		    for d in listdir(this_dir)
-		    if path.isdir(path.join(this_dir, d))
+		    for d in listdir(dir_path)
+		    if path.isdir(path.join(dir_path, d))
 		}
 		content["."] = [
-		    f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))
+		    f for f in listdir(dir_path) if path.isfile(path.join(dir_path, f))
 		]
 		content[".."] = [
-		    this_dir.lstrip(self.local_files_path).replace('\\', '/')
+		    dir_path.lstrip(self.local_files_path).replace('\\', '/')
 		]
 		return content
 
 	def get_files_branch(self, this_dir):
-		# generate a tree of a single folder in the share folder structure.
+		# get the specific path
+		dir_path = self.local_files_path + this_dir
+		# generate a tree of the share folder structure.
 		content = {
 		    d: {}
-		    for d in listdir(this_dir)
-		    if path.isdir(path.join(this_dir, d))
+		    for d in listdir(dir_path)
+		    if path.isdir(path.join(dir_path, d))
 		}
 		content["."] = [
-		    f for f in listdir(this_dir) if path.isfile(path.join(this_dir, f))
+		    f for f in listdir(dir_path) if path.isfile(path.join(dir_path, f))
 		]
 		content[".."] = [
-		    this_dir.lstrip(self.local_files_path).replace('\\', '/')
+		    dir_path.lstrip(self.local_files_path).replace('\\', '/')
 		]
 		return content
 
 	def isChildPath(self, child_path):
 		parent = path.realpath(self.local_files_path)
 		child = path.realpath(child_path)
-		return Path(parent) in Path(child).parents
+		return parent == child or Path(parent) in Path(child).parents
 
 	def send_folders(self, router):
 		# check auth
