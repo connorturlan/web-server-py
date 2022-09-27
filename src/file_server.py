@@ -217,38 +217,40 @@ class FileServer(WebModule):
 
 		# check that the source file exists.
 		if not os.path.exists(local_origin):
+			print('1')
 			router.send_error(404, "Source not found")
 			return False
 
 		# check that the destination parent folder exists.
 		if not os.path.exists(os.path.dirname(local_destination)):
+			print('2')
 			router.send_error(404, "Destination not found")
 			return False
 
 		# check that the origin and destination are different.
 		if local_origin == local_destination:
+			print('3')
 			router.send_error(400, "Source and destination must be different")
 			return False
 
+		print('4')
+
 		# ensure the origin exists.
-		if os.path.exists(local_origin):
-			if doCopy:
-				if path.isdir(local_origin):
-					shutil.copytree(local_origin, local_destination)
-				elif path.isfile(local_origin):
-					shutil.copyfile(local_origin, local_destination)
-				else:
-					router.send_error(
-					    400,
-					    "Filepath refers to object that isn't folder nor file")
-
-				router.send_simple("Copied", 201)
+		if doCopy:
+			if path.isdir(local_origin):
+				shutil.copytree(local_origin, local_destination)
+			elif path.isfile(local_origin):
+				shutil.copyfile(local_origin, local_destination)
 			else:
-				shutil.move(local_origin, local_destination)
-				router.send_simple("Moved", 202)
-		else:
-			router.send_error(404, "File doesn't exist")
+				router.send_error(
+				    400, "Filepath refers to object that isn't folder nor file")
 
+			router.send_simple("Copied", 201)
+		else:
+			shutil.move(local_origin, local_destination)
+			router.send_simple("Moved", 202)
+
+		print('returning true')
 		return True
 
 	def copy_file(self, router, origin, destination):
@@ -271,12 +273,12 @@ class FileServer(WebModule):
 			return True
 		# return the request for a specific folder tree.
 		elif params["method"] == "folder":
-			file_path = unquote("/".join(params[""]))
+			file_path = unquote("/" + "/".join(params[""]))
 			self.send_folder(router, file_path)
 			return True
 		# return the file specified in the request body.
 		elif params["method"] == "get":
-			file_path = unquote("/".join(params[""]))
+			file_path = unquote("/" + "/".join(params[""]))
 
 			# send the file, if it exists.
 			self.send_file(router, file_path)
@@ -298,22 +300,21 @@ class FileServer(WebModule):
 			return True
 		#
 		elif params["method"] == "mkdir":
-			folder_path = unquote(self.local_files_path + "/" +
-			                      "/".join(params[""]))
+			folder_path = unquote("/" + "/".join(params[""]))
 			self.create_folder(router, folder_path)
 			return True
 		#
 		elif params["method"] == "upload":
-			# validate that the request has a body.
+			""" # validate that the request has a body.
 			file_body = router.receive_body()
 			if not file_body:
 				router.send_error(400, "No request body specified")
-				return True
+				return True """
 
 			# get the file_path.
-			file_path = unquote(self.local_files_path + "/" +
-			                    "/".join(params[""]))
-			self.create_file(router, file_path, file_body)
+			file_path = unquote("/" + "/".join(params[""]))
+			print(file_path)
+			self.create_file(router, file_path, router.receive_body())
 			return True
 		# the specified method or parameter was invalid.
 		else:
@@ -331,7 +332,7 @@ class FileServer(WebModule):
 			return True
 		# return the get-all request.
 		elif params["method"] == "delete":
-			file_path = unquote("/".join(params[""]))
+			file_path = unquote("/" + "/".join(params[""]))
 			self.delete_file(router, file_path)
 			return True
 		# the specified method or parameter was invalid.
@@ -350,7 +351,7 @@ class FileServer(WebModule):
 			router.send_error(400, "Unspecified method")
 			return True
 
-		file_origin = unquote("/".join(params[""]))
+		file_origin = unquote("/" + "/".join(params[""]))
 
 		# get the requested file destination.
 		# validate that the request has a body.
@@ -369,7 +370,7 @@ class FileServer(WebModule):
 			router.send_error(400, "Invalid request body")
 			return True
 
-		file_destination = req_json['destination']
+		file_destination = "/" + req_json['destination']
 
 		# determine the patch method the user would like.
 		# perform the copy method.
