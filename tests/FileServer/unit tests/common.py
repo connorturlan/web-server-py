@@ -24,14 +24,13 @@ class FileServerCommonTest(unittest.TestCase):
 		self.files = self.root + '.testing\\'
 
 		# create a testing dir, wrapped in a safe folder so we don't accidentally delete tests.
-		mkdir('.\\.canary\\')
 		mkdir(self.root)
+		mkdir(self.root + '.canary\\')
 		mkdir(self.root + '.not in testing\\')
 		mkdir(self.files)
 		mkdir(self.files + 'folder\\')
-		# mkdir(os.path.join(self.root, '.testing', 'folder2'))
 
-		# create a test file.
+		# create test files.
 		with open(self.files + 'test.txt', 'w+') as file:
 			file.write('hello, world!\n')
 		with open(self.files + 'folder\\file.txt', 'w+') as file:
