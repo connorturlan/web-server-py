@@ -7,7 +7,5 @@
 		"editor.formatOnSave": true
 	},
 	"python.formatting.provider": "yapf",
-	"python.formatting.yapfPath": "%USERPROFILE%/AppData/Local/Programs/Python/Python310/Scripts/yapf.exe",
-	"editor.formatOnSave": true,
-	"editor.insertSpaces": false
+	"python.formatting.yapfPath": "%USERPROFILE%/AppData/Local/Programs/Python/Python310/Scripts/yapf.exe"
 }
