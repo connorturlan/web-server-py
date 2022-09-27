@@ -1,3 +1,4 @@
+from threading import local
 from src.web_server import WebServer, WebModule
 from urllib.parse import unquote
 from os import listdir, path
@@ -104,19 +105,41 @@ class FileServer(WebModule):
 			router.send({"Content-Type": mimetype}, file.read())
 			return True
 
-	def create_folder(self, router, folder_path):
-		if os.path.exists(folder_path):
+	def create_unit(self, router, item_path, item_data='', isDir=False):
+		local_path = self.local_files_path + item_path
+		if os.path.exists(local_path):
 			router.send_error(400, "Folder already exists")
 			return False
 
+		if not os.path.exists(os.path.dirname(local_path)):
+			router.send_error(404, "Folder not found")
+			return False
+
 		# create the directory if it doesn't exist.
-		os.mkdir(folder_path)
+		os.mkdir(local_path)
 
 		# send a successful status code.
 		router.send_simple("Folder created", 201)
 		return True
 
-	def receive_files(self, router, file_path, file_body):
+	def create_folder(self, router, folder_path):
+		local_path = self.local_files_path + folder_path
+		if os.path.exists(local_path):
+			router.send_error(400, "Folder already exists")
+			return False, 400
+
+		if not os.path.exists(os.path.dirname(local_path)):
+			router.send_error(404, "Folder not found")
+			return False, 404
+
+		# create the directory if it doesn't exist.
+		os.mkdir(local_path)
+
+		# send a successful status code.
+		router.send_simple("Folder created", 201)
+		return True, 201
+
+	def create_file(self, router, file_path, file_body):
 		# check that the parent folder exists.
 		folder_path = os.path.dirname(file_path)
 		if not os.path.exists(folder_path):
@@ -271,7 +294,7 @@ class FileServer(WebModule):
 			# get the file_path.
 			file_path = unquote(self.local_files_path + "/" +
 			                    "/".join(params[""]))
-			self.receive_files(router, file_path, file_body)
+			self.create_file(router, file_path, file_body)
 			return True
 		# the specified method or parameter was invalid.
 		else:
