@@ -104,7 +104,7 @@ class FileServerCopyUnitTests(FileServerCommonTest):
 
 		self.assertFalse(success)
 		self.assertTrue(os.path.exists(self.files + 'src/copy.txt'))
-		self.assertFalse(os.path.exists(self.files + '../.canary/copy.txt'))
+		self.assertFalse(os.path.exists(self.files + '.canary/dest.txt'))
 
 	# test folder copy succeeds
 	# test folder copy succeeds - rename
@@ -118,7 +118,7 @@ class FileServerCopyUnitTests(FileServerCommonTest):
 
 	# test folder copy succeeds
 	def test_folder_copy_succeeds(self):
-		success = self.server.copy_folder(DummyRouter(), 'src/copy', 'dst/copy')
+		success = self.server.copy_file(DummyRouter(), 'src/copy', 'dst/copy')
 
 		self.assertTrue(success)
 		self.assertTrue(os.path.exists(self.files + 'src/copy'))
@@ -126,8 +126,8 @@ class FileServerCopyUnitTests(FileServerCommonTest):
 
 	# test folder copy succeeds - rename
 	def test_folder_copy_succeeds_rename(self):
-		success = self.server.copy_folder(DummyRouter(), 'src/copy',
-		                                  'src/renamed')
+		success = self.server.copy_file(DummyRouter(), 'src/copy',
+		                                'src/renamed')
 
 		self.assertTrue(success)
 		self.assertTrue(os.path.exists(self.files + 'src/copy'))
@@ -135,7 +135,7 @@ class FileServerCopyUnitTests(FileServerCommonTest):
 
 	# test folder copy succeeds - new directory
 	def test_folder_copy_succeeds_newDirectory(self):
-		success = self.server.copy_folder(DummyRouter(), 'src/copy', 'dst/copy')
+		success = self.server.copy_file(DummyRouter(), 'src/copy', 'dst/copy')
 
 		self.assertTrue(success)
 		self.assertTrue(os.path.exists(self.files + 'src/copy'))
@@ -143,8 +143,7 @@ class FileServerCopyUnitTests(FileServerCommonTest):
 
 	# test folder copy succeeds - new directory and rename
 	def test_folder_copy_succeeds_newDirectoryAndRename(self):
-		success = self.server.copy_folder(DummyRouter(), 'src/copy',
-		                                  'dst/rename')
+		success = self.server.copy_file(DummyRouter(), 'src/copy', 'dst/rename')
 
 		self.assertTrue(success)
 		self.assertTrue(os.path.exists(self.files + 'src/copy'))
@@ -152,7 +151,7 @@ class FileServerCopyUnitTests(FileServerCommonTest):
 
 	# test folder copy fails - same path
 	def test_folder_copy_fails_samePath(self):
-		success = self.server.copy_folder(DummyRouter(), 'src/copy', 'src/copy')
+		success = self.server.copy_file(DummyRouter(), 'src/copy', 'src/copy')
 
 		self.assertFalse(success)
 		self.assertTrue(os.path.exists(self.files + 'src/copy'))
@@ -160,8 +159,7 @@ class FileServerCopyUnitTests(FileServerCommonTest):
 
 	# test folder copy fails - folder doesn't exist
 	def test_folder_copy_fails_folderDoesntExist(self):
-		success = self.server.copy_folder(DummyRouter(), 'src/source',
-		                                  'dst/copy')
+		success = self.server.copy_file(DummyRouter(), 'src/source', 'dst/copy')
 
 		self.assertFalse(success)
 		self.assertFalse(os.path.exists(self.files + 'src/source'))
@@ -170,8 +168,8 @@ class FileServerCopyUnitTests(FileServerCommonTest):
 
 	# test folder copy fails - destination doesn't exist
 	def test_folder_copy_fails_destinationDoesntExist(self):
-		success = self.server.copy_folder(DummyRouter(), 'src/copy',
-		                                  'destination/copy')
+		success = self.server.copy_file(DummyRouter(), 'src/copy',
+		                                'destination/copy')
 
 		self.assertFalse(success)
 		self.assertTrue(os.path.exists(self.files + 'src/copy'))
@@ -180,21 +178,21 @@ class FileServerCopyUnitTests(FileServerCommonTest):
 
 	# test folder copy fails - source not in share directory
 	def test_folder_copy_fails_sourceNotInShareDirectory(self):
-		success = self.server.copy_folder(DummyRouter(), '../.canary/copy',
-		                                  'dst/copy')
+		success = self.server.copy_file(DummyRouter(), '../.canary/copy',
+		                                'dst/copy')
 
 		self.assertFalse(success)
-		self.assertTrue(os.path.exists(self.files + '../.canary/copy'))
+		self.assertTrue(os.path.exists(self.files + '.canary/copy'))
 		self.assertFalse(os.path.exists(self.files + 'dst/copy'))
 
 	# test folder copy fails - destination not in share directory
 	def test_folder_copy_fails_destinationNotInShareDirectory(self):
-		success = self.server.copy_folder(DummyRouter(), 'src/copy',
-		                                  '../.canary/dest')
+		success = self.server.copy_file(DummyRouter(), 'src/copy',
+		                                '../.canary/dest')
 
 		self.assertFalse(success)
 		self.assertTrue(os.path.exists(self.files + 'src/copy'))
-		self.assertFalse(os.path.exists(self.files + '../.canary/copy'))
+		self.assertFalse(os.path.exists(self.files + '.canary/dest'))
 
 
 if __name__ == '__main__':

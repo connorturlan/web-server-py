@@ -43,7 +43,7 @@ class FileServerCommonTest(unittest.TestCase):
 	def tearDownClass(self):
 		# remove the testing directories.
 		shutil.rmtree(self.root)
-		shutil.rmtree('.\\.canary')
+		# shutil.rmtree('.\\.canary')
 
 
 if __name__ == "__main__":
