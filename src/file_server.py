@@ -105,9 +105,13 @@ class FileServer(WebModule):
 			router.send({"Content-Type": mimetype}, file.read())
 			return True
 
-	def create_unit(self, item_path, item_data='', isDir=False):
+	def create_unit(self, item_path, isDir=True, item_data=''):
 		# create the full item path.
 		local_path = self.local_files_path + item_path
+
+		# check that the path exists in the share directory.
+		if not self.isChildPath(local_path):
+			return False, 403
 
 		# check that the item doesn't already exist.
 		if os.path.exists(local_path):
@@ -129,6 +133,22 @@ class FileServer(WebModule):
 		return True, 201
 
 	def create_folder(self, router, folder_path):
+		# create the file.
+		success, status = self.create_unit(folder_path)
+		# respond to the request.
+		if success:
+			# send a successful status code.
+			router.send_simple("Folder created", 201)
+			return True
+		else:
+			if status == 400:
+				router.send_error(404, "Parent folder not found")
+			elif status == 403:
+				router.send_error(403, "Folder unavailable")
+			elif status == 404:
+				router.send_error(400, "Folder already exists")
+			return False
+
 		local_path = self.local_files_path + folder_path
 		if os.path.exists(local_path):
 			router.send_error(400, "Folder already exists")
@@ -147,7 +167,7 @@ class FileServer(WebModule):
 
 	def create_file(self, router, file_path, file_body):
 		# create the file.
-		success, status = self.create_unit(file_path, file_body, False)
+		success, status = self.create_unit(file_path, False, file_body)
 		# respond to the request.
 		if success:
 			# send a successful status code.
@@ -156,6 +176,8 @@ class FileServer(WebModule):
 		else:
 			if status == 400:
 				router.send_error(404, "Parent folder not found")
+			elif status == 403:
+				router.send_error(403, "Folder unavailable")
 			elif status == 404:
 				router.send_error(400, "File already exists")
 			return False
