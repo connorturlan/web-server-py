@@ -140,6 +140,7 @@ class FileServer(WebModule):
 			# send a successful status code.
 			router.send_simple("Folder created", 201)
 			return True
+		# respond with error when unsuccessful.
 		else:
 			if status == 400:
 				router.send_error(404, "Parent folder not found")
@@ -149,22 +150,6 @@ class FileServer(WebModule):
 				router.send_error(400, "Folder already exists")
 			return False
 
-		local_path = self.local_files_path + folder_path
-		if os.path.exists(local_path):
-			router.send_error(400, "Folder already exists")
-			return False
-
-		if not os.path.exists(os.path.dirname(local_path)):
-			router.send_error(404, "Folder not found")
-			return False
-
-		# create the directory if it doesn't exist.
-		os.mkdir(local_path)
-
-		# send a successful status code.
-		router.send_simple("Folder created", 201)
-		return True
-
 	def create_file(self, router, file_path, file_body):
 		# create the file.
 		success, status = self.create_unit(file_path, False, file_body)
@@ -173,6 +158,7 @@ class FileServer(WebModule):
 			# send a successful status code.
 			router.send_simple("File created", 201)
 			return True
+		# respond with error when unsuccessful.
 		else:
 			if status == 400:
 				router.send_error(404, "Parent folder not found")
@@ -181,20 +167,6 @@ class FileServer(WebModule):
 			elif status == 404:
 				router.send_error(400, "File already exists")
 			return False
-
-		# check that the parent folder exists.
-		folder_path = os.path.dirname(file_path)
-		if not os.path.exists(folder_path):
-			router.send_error(404, "Folder not found")
-			return False
-
-		# write the request body to the
-		with open(file_path, "wb") as file:
-			file.write(bytearray(file_body))
-
-		# send a successful status code.
-		router.send_simple("File created", 201)
-		return True
 
 	def delete_file(self, router, file_path):
 		# check auth
