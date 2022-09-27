@@ -32,10 +32,11 @@ class FileServerCreateUnitTests(FileServerCommonTest):
 
 	# test file creation succeeds
 	def test_file_create_succeeds(self):
-		success = self.server.create_file(DummyRouter(), 'new_file.txt',
-		                                  'This is a new file!')
+		success = self.server.create_file(
+		    DummyRouter(), 'new_file.txt',
+		    bytearray('This is a new file!', 'utf-8'))
 		self.assertTrue(success)
-		self.assertTrue(os.path.exists(self.files + 'create'))
+		self.assertTrue(os.path.exists(self.files + 'new_file.txt'))
 
 	# test file creation fails - file exists
 	def test_file_create_fails_fileExists(self):

@@ -5,11 +5,10 @@ from .common import DummyRouter, FileServerCommonTest
 
 
 class FileServerCopyUnitTests(FileServerCommonTest):
-
-	def test(self):
-		self.assertTrue(False)
-
 	# test file copy succeeds
+	def test_file_copy_succeeds(self):
+		pass
+
 	# test file copy succeeds - rename
 	# test file copy succeeds - new directory
 	# test file copy succeeds - new directory and rename
