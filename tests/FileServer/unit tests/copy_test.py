@@ -12,6 +12,8 @@ class FileServerCopyUnitTests(FileServerCommonTest):
 		mkdir(self.files + 'dst\\')
 		mkdir(self.files + 'src\\copy\\')
 
+		mkdir(self.root + '.canary\\copy\\')
+
 		# create the files.
 		with open(self.files + 'src\\copy.txt', 'w+') as file:
 			file.write('hello, world!\n')
@@ -107,16 +109,6 @@ class FileServerCopyUnitTests(FileServerCommonTest):
 		self.assertFalse(os.path.exists(self.files + '.canary/dest.txt'))
 
 	# test folder copy succeeds
-	# test folder copy succeeds - rename
-	# test folder copy succeeds - new directory
-	# test folder copy succeeds - new directory and rename
-	# test folder copy fails - same path
-	# test folder copy fails - folder doesn't exist
-	# test folder copy fails - destination doesn't exist
-	# test folder copy fails - source not in share directory
-	# test folder copy fails - destination not in share directory
-
-	# test folder copy succeeds
 	def test_folder_copy_succeeds(self):
 		success = self.server.copy_file(DummyRouter(), 'src/copy', 'dst/copy')
 
@@ -182,7 +174,7 @@ class FileServerCopyUnitTests(FileServerCommonTest):
 		                                'dst/copy')
 
 		self.assertFalse(success)
-		self.assertTrue(os.path.exists(self.files + '.canary/copy'))
+		self.assertTrue(os.path.exists(self.root + '.canary/copy'))
 		self.assertFalse(os.path.exists(self.files + 'dst/copy'))
 
 	# test folder copy fails - destination not in share directory

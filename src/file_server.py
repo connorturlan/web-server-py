@@ -215,9 +215,14 @@ class FileServer(WebModule):
 			router.send_error(403, "File unavailable")
 			return False
 
+		# check that the source file exists.
+		if not os.path.exists(local_origin):
+			router.send_error(404, "Source not found")
+			return False
+
 		# check that the destination parent folder exists.
 		if not os.path.exists(os.path.dirname(local_destination)):
-			router.send_error(404, "Source not found")
+			router.send_error(404, "Destination not found")
 			return False
 
 		# check that the origin and destination are different.

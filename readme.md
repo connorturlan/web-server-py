@@ -81,6 +81,7 @@ All modules at the end of their HTTP method implementation must return `True` or
 -   Add tests checking the folder structure after modification.
     -   Add unittest to webserver for testing.
     -   Working on unit tests for the file server.
+-   Make create file/folder methods DRY.
 
 ## License
 
