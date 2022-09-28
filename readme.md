@@ -69,8 +69,6 @@ All modules at the end of their HTTP method implementation must return `True` or
 
 ## Future Plans
 
--   Remove default terminal behaviour for `WebModule`.
-    -   Use dictionary to link paths to modules, match longest path.
 -   Implement OPTION for preflight CORS requests in the base module for simplicity.
     -   Allow toggling and configuring CORS within the `WebModule` or `HTTPController`.
 -   Use `os.path.exists` instead of `try-catch` for existence checking.

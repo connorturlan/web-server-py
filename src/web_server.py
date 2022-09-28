@@ -43,12 +43,7 @@ class WebModule:
 
 	def do_METHOD(self, router, method):
 		# if there are url params defined for this module, match the start of the path.
-		if self.url_params:
-			return (method(router) or True
-			        if router.path.startswith(self.path) else False)
-		# otherwise, match the exact path.
-		else:
-			return method(router) or True if router.path == self.path else False
+		return method(router)
 
 	def do_POST(self, router):
 		return self.do_METHOD(router, self.POST)
@@ -122,13 +117,6 @@ class HTTPController(BaseHTTPRequestHandler):
 		module = self.find_module(self.path)
 		if module:
 			method(module, self)
-		else:
-			self.send_error(404, "File not found")
-		return
-
-		for module in self.modules:
-			if method(module, self):
-				break
 		else:
 			self.send_error(404, "File not found")
 
