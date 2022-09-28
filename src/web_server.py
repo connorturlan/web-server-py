@@ -75,11 +75,26 @@ class HTTPController(BaseHTTPRequestHandler):
 
 	def init(self):
 		self.modules = []
+		self.paths = {}
 		return self
 
 	def add_module(self, *modules):
 		for module in modules:
 			self.modules.append(module)
+			self.paths[module.path] = module
+
+	def find_module(self, url_path):
+		# sort the path dict keys longest to shortest.
+		module_paths = sorted(self.paths.keys(), key=len)
+		module_paths.reverse()
+
+		# find the module with the longest matching path.
+		for path in module_paths:
+			if url_path.startswith(path):
+				return self.paths[path]
+
+		# if none is found, return None.
+		return None
 
 	def send_body(self, b):
 		self.wfile.write(b)
@@ -104,6 +119,13 @@ class HTTPController(BaseHTTPRequestHandler):
 		          code)
 
 	def do_METHOD(self, method):
+		module = self.find_module(self.path)
+		if module:
+			method(module, self)
+		else:
+			self.send_error(404, "File not found")
+		return
+
 		for module in self.modules:
 			if method(module, self):
 				break
