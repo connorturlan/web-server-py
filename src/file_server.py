@@ -157,8 +157,12 @@ class FileServer(WebModule):
 		return True, 201
 
 	def create_unit(self, router, item_path, isFile=False, item_data=''):
+		# check auth
+		pass
+
 		# create the unit.
 		success, status = self.server_create_unit(item_path, isFile, item_data)
+
 		# respond to the request.
 		if success:
 			# send a successful status code.
