@@ -1,4 +1,3 @@
-from threading import local
 from src.web_server import WebServer, WebModule
 from urllib.parse import unquote
 from os import listdir, path
