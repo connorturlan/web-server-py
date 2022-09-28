@@ -73,7 +73,8 @@ class FileServerCopyTests(unittest.TestCase):
 		self.assertEqual(response.status_code, 400)
 
 	def test_copy_file_fails_incorrectMethod(self):
-		response = send_patch('http://localhost/files/get')
+		response = send_patch('http://localhost/files/get',
+		                      {'destination': "/"})
 
 		self.assertEqual(response.status_code, 405)
 

@@ -7,16 +7,17 @@
 
 ## 1x method errors
 
-10. unspecified method
+10. missing method
 11. incorrect method
 12. no request body
 13. request body empty
 14. request body must be json
+15. request body incorrect
 
 ## 2x disallowed errors
 
 20. user unauthenticated
-21. user unauthourized
+21. user unauthorized
 22. not in share dir
 
 ## 3x specific errors

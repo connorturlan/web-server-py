@@ -39,7 +39,7 @@ class FileServerMoveTests(unittest.TestCase):
 		response = send_patch('http://localhost/files/move/.test/.file.txt',
 		                      {"destination": ".test/.file.txt"})
 
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 409)
 
 	def test_move_file_renamingSucceeds(self):
 		response = send_patch('http://localhost/files/move/.test/.file.txt',
@@ -76,7 +76,8 @@ class FileServerMoveTests(unittest.TestCase):
 		self.assertEqual(response.status_code, 400)
 
 	def test_move_file_fails_incorrectMethod(self):
-		response = send_patch('http://localhost/files/get')
+		response = send_patch('http://localhost/files/get',
+		                      {'destination': "/"})
 
 		self.assertEqual(response.status_code, 405)
 

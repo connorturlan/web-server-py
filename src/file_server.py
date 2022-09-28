@@ -25,6 +25,7 @@ class FileServer(WebModule):
 		    12: (400, "Request body missing"),
 		    13: (400, "Request body empty"),
 		    14: (400, "Request body must be JSON"),
+		    15: (400, "Request body incorrect"),
 		    20: (401, "User unauthenticated"),
 		    21: (403, "User unauthorized"),
 		    22: (403, "Path unavailable"),
@@ -170,11 +171,10 @@ class FileServer(WebModule):
 				router.send_simple("File created", 201)
 			else:
 				router.send_simple("Folder created", 201)
-			return True
 		# respond with error when unsuccessful.
 		else:
 			self.send_error(router, status)
-			return False
+		return success
 
 	def create_folder(self, router, folder_path):
 		# create the folder.
@@ -189,7 +189,6 @@ class FileServer(WebModule):
 
 		# check is subdir of files, i.e. not outside the safe share folder.
 		if not self.isChildPath(local_path):
-			print("access beyond bounds.")
 			return False, 22
 
 		# check that the file exists.
@@ -216,55 +215,60 @@ class FileServer(WebModule):
 		# send a successful status code.
 		if success:
 			router.send_simple("Deleted", 204)
-			return True
 		# otherwise, send the error.
 		else:
 			self.send_error(router, status)
-			return False
+		return success
 
-	def shuttle_file(self, router, origin, destination, doCopy=True):
-		# check auth
-		pass
-
+	def server_shuttle_file(self, origin, destination, doCopy=True):
+		# get the local paths of the src and dst.
 		local_origin = self.get_local_path(origin)
 		local_destination = self.get_local_path(destination)
 
 		# check is subdir of files, i.e. not outside the safe share folder.
 		if not self.isChildPath(local_origin) or not self.isChildPath(
 		    local_destination):
-			print("access beyond bounds.")
-			router.send_error(403, "File unavailable")
-			return False
+			return False, 22
 
 		# check that the source file exists.
 		if not os.path.exists(local_origin):
-			router.send_error(404, "Source not found")
-			return False
+			return False, 40
 
 		# check that the destination parent folder exists.
 		if not os.path.exists(os.path.dirname(local_destination)):
-			router.send_error(404, "Destination not found")
-			return False
+			return False, 54
 
 		# check that the origin and destination are different.
 		if local_origin == local_destination:
-			router.send_error(400, "Source and destination must be different")
-			return False
+			return False, 30
 
-		# ensure the origin exists.
+		# perform the copy/move.
 		if doCopy:
 			if path.isdir(local_origin):
 				shutil.copytree(local_origin, local_destination)
 			else:
 				shutil.copyfile(local_origin, local_destination)
-
-			router.send_simple("Copied", 201)
 		else:
 			shutil.move(local_origin, local_destination)
-			router.send_simple("Moved", 202)
+		return True, 0
 
-		print('returning true')
-		return True
+	def shuttle_file(self, router, origin, destination, doCopy):
+		# check auth
+		pass
+
+		# perform the shuttle.
+		success, status = self.server_shuttle_file(origin, destination, doCopy)
+
+		# if successful send the correct response.
+		if success:
+			if doCopy:
+				router.send_simple("Copied", 201)
+			else:
+				router.send_simple("Moved", 202)
+		# if unsuccessful send the correct error.
+		else:
+			self.send_error(router, status)
+		return success
 
 	def copy_file(self, router, origin, destination):
 		return self.shuttle_file(router, origin, destination, True)
@@ -279,27 +283,28 @@ class FileServer(WebModule):
 		# validate that there were params to check, otherwise it's just a simple get-all request.
 		if not params or "method" not in params or not params["method"]:
 			self.send_folders(router)
-			return True
+
 		# return the get-all request.
 		elif params["method"] == "all":
 			self.send_folders(router)
-			return True
+
 		# return the request for a specific folder tree.
 		elif params["method"] == "folder":
 			file_path = unquote("/" + "/".join(params[""]))
+
+			# send the folder branch, if it exists.
 			self.send_folder(router, file_path)
-			return True
+
 		# return the file specified in the request body.
 		elif params["method"] == "get":
 			file_path = unquote("/" + "/".join(params[""]))
 
 			# send the file, if it exists.
 			self.send_file(router, file_path)
-			return True
+
 		# the specified method or parameter was invalid.
 		else:
-			router.send_error(400, "Incorrect method")
-			return True
+			self.send_error(router, 11)    # incorrect method.
 
 	def POST(self, router):
 		# get the url parameters.
@@ -308,29 +313,25 @@ class FileServer(WebModule):
 		# validate that there were params to check, otherwise it's just a simple upload request.
 		if not params or "method" not in params or not params["method"]:
 			router.send_error(400, "Unspecified method")
-
-			return True
 		#
 		elif params["method"] == "mkdir":
 			folder_path = unquote("/" + "/".join(params[""]))
 			self.create_folder(router, folder_path)
-			return True
 		#
 		elif params["method"] == "upload":
-			""" # validate that the request has a body.
+			# validate that the request has a body.
 			file_body = router.receive_body()
 			if not file_body:
-				router.send_error(400, "No request body specified")
-				return True """
+				self.send_error(router, 12)    # no request body
+				return True
 
 			# get the file_path.
 			file_path = unquote("/" + "/".join(params[""]))
-			print(file_path)
-			self.create_file(router, file_path, router.receive_body())
+			self.create_file(router, file_path, file_body)
 			return True
 		# the specified method or parameter was invalid.
 		else:
-			router.send_error(400, "Incorrect method")
+			self.send_error(router, 11)    # incorrect method.
 			return True
 
 	def DELETE(self, router):
@@ -339,19 +340,14 @@ class FileServer(WebModule):
 
 		# validate that there was a method specified.
 		if not params or "method" not in params or not params["method"]:
-			router.send_error(400, "Unspecified method")
-
-			return True
+			self.send_error(router, 10)    # missing method.
 		# return the get-all request.
 		elif params["method"] == "delete":
 			file_path = unquote("/" + "/".join(params[""]))
 			self.delete_file(router, file_path)
-			return True
 		# the specified method or parameter was invalid.
 		else:
-			router.send_error(400, "Incorrect method")
-
-			return True
+			self.send_error(router, 11)    # incorrect method.
 
 	def PATCH(self, router):
 		# get the url parameters.
@@ -360,8 +356,8 @@ class FileServer(WebModule):
 		# get the requested file source.
 		# validate that there was a method specified.
 		if not params or "method" not in params or not params["method"]:
-			router.send_error(400, "Unspecified method")
-			return True
+			self.send_error(router, 10)
+			return
 
 		file_origin = unquote("/" + "/".join(params[""]))
 
@@ -369,18 +365,23 @@ class FileServer(WebModule):
 		# validate that the request has a body.
 		req_body = router.receive_body()
 		if not req_body:
-			router.send_error(400, "No request body specified")
-			return True
+			self.send_error(router, 12)
+			return
 
 		# validate that the req_body is json.
-		req_json = json.loads(req_body)
+		try:
+			req_json = json.loads(req_body)
+		except:
+			self.send_error(router, 14)
+			return
+
 		if not req_json:
-			router.send_error(400, "No request body specified (json)")
-			return True
+			self.send_error(router, 13)
+			return
 		# validate that the req_json contains the file destination.
 		elif 'destination' not in req_json:
-			router.send_error(400, "Invalid request body")
-			return True
+			self.send_error(router, 15)
+			return
 
 		file_destination = "/" + req_json['destination']
 
@@ -388,15 +389,12 @@ class FileServer(WebModule):
 		# perform the copy method.
 		if params["method"] == "copy":
 			self.copy_file(router, file_origin, file_destination)
-			return True
 		# perform the move method.
 		elif params["method"] == "move":
 			self.move_file(router, file_origin, file_destination)
-			return True
 		# the specified method or parameter was invalid.
 		else:
-			router.send_error(400, "Incorrect method")
-			return True
+			self.send_error(router, 11)
 
 	def OPTIONS(self, router):
 		# send a CORS header for preflight requests.
