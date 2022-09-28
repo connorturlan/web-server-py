@@ -73,9 +73,6 @@ All modules at the end of their HTTP method implementation must return `True` or
     -   Allow toggling and configuring CORS within the `WebModule` or `HTTPController`.
 -   Use `os.path.exists` instead of `try-catch` for existence checking.
 -   Add `optparse` for file server.
--   Add more descriptive HTTP codes:
-    -   Add 405 - Method not allowed for invalid methods.
-    -   Add 409 - Conflict for a copy/move is same dir or file already exists.
 -   Add unittest to WebServer for testing.
 -   Remove router from methods that modify the file system, (make pure).
 
