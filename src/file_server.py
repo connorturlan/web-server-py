@@ -16,6 +16,39 @@ class FileServer(WebModule):
 		super().__init__(path, "/method")
 		self.local_files_path = files_path.replace('\\', '/')
 
+		# define all error messages for the file server. as specified in the internal error documentation.
+		self.error_messages = {
+		    0: (200, "Success"),
+		    1: (500, "Failed"),
+		    10: (400, "Unspecified method"),
+		    11: (405, "Invalid method"),
+		    12: (400, "Request body missing"),
+		    13: (400, "Request body empty"),
+		    14: (400, "Request body must be JSON"),
+		    20: (401, "User unauthenticated"),
+		    21: (403, "User unauthorized"),
+		    22: (403, "Path unavailable"),
+		    30: (409, "Source and destination path must be different"),
+		    40: (404, "File not found"),
+		    41: (409, "File already exists"),
+		    42: (404, "Destination file doesn't exist"),
+		    43: (409, "Destination file already exists"),
+		    50: (404, "Folder doesn't exist"),
+		    51: (409, "Folder already exists"),
+		    52: (404, "Destination folder doesn't exist"),
+		    53: (409, "Destination folder already exists"),
+		    54: (404, "Parent folder doesn't exist")
+		}
+
+	def send_error(self, router, error_code):
+		# check that the error code does exist, then send.
+		if error_code in self.error_messages:
+			code, message = self.error_messages[error_code]
+			router.send_error(code, message)
+		# otherwise send an generic server-side error.
+		else:
+			router.send_error(500)
+
 	def generate_files_branch(self, this_dir, isTree):
 		# get the specific path
 		dir_path = self.local_files_path + this_dir
@@ -60,8 +93,7 @@ class FileServer(WebModule):
 		pass
 
 		# get the file structure
-		local_path = folder_path
-		tree = self.get_files_branch(local_path)
+		tree = self.get_files_branch(folder_path)
 
 		# send the JSON tree
 		router.send_json(json.dumps(tree))
@@ -100,15 +132,15 @@ class FileServer(WebModule):
 
 		# check that the path exists in the share directory.
 		if not self.isChildPath(local_path):
-			return False, 403
+			return False, 22
 
 		# check that the item doesn't already exist.
 		if os.path.exists(local_path):
-			return False, 400
+			return False, (51 if isDir else 41)
 
 		# check that the parent folder does exist.
 		if not os.path.exists(os.path.dirname(local_path)):
-			return False, 404
+			return False, 54
 
 		# create the directory if it doesn't exist.
 		if isDir:
@@ -131,12 +163,7 @@ class FileServer(WebModule):
 			return True
 		# respond with error when unsuccessful.
 		else:
-			if status == 400:
-				router.send_error(404, "Parent folder not found")
-			elif status == 403:
-				router.send_error(403, "Folder unavailable")
-			elif status == 404:
-				router.send_error(400, "Folder already exists")
+			self.send_error(router, status)
 			return False
 
 	def create_file(self, router, file_path, file_body):
@@ -149,12 +176,7 @@ class FileServer(WebModule):
 			return True
 		# respond with error when unsuccessful.
 		else:
-			if status == 400:
-				router.send_error(404, "Parent folder not found")
-			elif status == 403:
-				router.send_error(403, "Folder unavailable")
-			elif status == 404:
-				router.send_error(400, "File already exists")
+			self.send_error(router, status)
 			return False
 
 	def delete_file(self, router, file_path):
