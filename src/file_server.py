@@ -107,28 +107,24 @@ class FileServer(WebModule):
 		# check auth
 		pass
 
+		# convert the relative file path to the local path.
 		local_path = self.get_local_path(file_path)
 
 		# check is subdir of files, i.e. not outside the safe share folder.
 		if not self.isChildPath(local_path):
-			print("access beyond bounds.")
-			router.send_error(403, "File unavailable")
-
+			self.send_error(router, 22)    # not in share dir
 			return False
 
 		# try and safely open the file, give feedback if not.
-		try:
-			file = open(local_path, "rb")
-		except IOError:
-			print("error retrieving file.")
-			router.send_error(404, "File not found")
-
+		if not os.path.exists(local_path):
+			self.send_error(router, 40)    # file doesn't exist.
 			return False
-		else:
-			# get the filetype and send to the user.
-			mimetype = mimetypes.guess_type(local_path)
-			router.send({"Content-Type": mimetype}, file.read())
-			return True
+
+		# get the filetype and send to the user.
+		file = open(local_path, "rb")
+		mimetype = mimetypes.guess_type(local_path)
+		router.send({"Content-Type": mimetype}, file.read())
+		return True
 
 	def server_create_unit(self, item_path, isFile, item_data):
 		# create the full item path.
