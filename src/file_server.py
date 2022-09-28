@@ -40,6 +40,9 @@ class FileServer(WebModule):
 		    54: (404, "Parent folder doesn't exist")
 		}
 
+	def get_local_path(self, rel_path):
+		return self.local_files_path if not rel_path else self.local_files_path + "/" + rel_path
+
 	def send_error(self, router, error_code):
 		# check that the error code does exist, then send.
 		if error_code in self.error_messages:
@@ -103,7 +106,7 @@ class FileServer(WebModule):
 		# check auth
 		pass
 
-		local_path = self.local_files_path if not file_path else self.local_files_path + "/" + file_path
+		local_path = self.get_local_path(file_path)
 
 		# check is subdir of files, i.e. not outside the safe share folder.
 		if not self.isChildPath(local_path):
@@ -126,9 +129,9 @@ class FileServer(WebModule):
 			router.send({"Content-Type": mimetype}, file.read())
 			return True
 
-	def create_unit(self, item_path, isDir=True, item_data=''):
+	def server_create_unit(self, item_path, isFile, item_data):
 		# create the full item path.
-		local_path = self.local_files_path + item_path
+		local_path = self.get_local_path(item_path)
 
 		# check that the path exists in the share directory.
 		if not self.isChildPath(local_path):
@@ -136,88 +139,91 @@ class FileServer(WebModule):
 
 		# check that the item doesn't already exist.
 		if os.path.exists(local_path):
-			return False, (51 if isDir else 41)
+			return False, (41 if isFile else 51)
 
 		# check that the parent folder does exist.
 		if not os.path.exists(os.path.dirname(local_path)):
 			return False, 54
 
 		# create the directory if it doesn't exist.
-		if isDir:
-			os.mkdir(local_path)
-		# write the request body to the file
-		else:
+		if isFile:
 			with open(local_path, "wb") as file:
 				file.write(bytearray(item_data))
+		# write the request body to the file
+		else:
+			os.mkdir(local_path)
 
 		# send a successful status code.
 		return True, 201
 
-	def create_folder(self, router, folder_path):
-		# create the file.
-		success, status = self.create_unit(folder_path)
+	def create_unit(self, router, item_path, isFile=False, item_data=''):
+		# create the unit.
+		success, status = self.server_create_unit(item_path, isFile, item_data)
 		# respond to the request.
 		if success:
 			# send a successful status code.
-			router.send_simple("Folder created", 201)
+			if isFile:
+				router.send_simple("File created", 201)
+			else:
+				router.send_simple("Folder created", 201)
 			return True
 		# respond with error when unsuccessful.
 		else:
 			self.send_error(router, status)
 			return False
+
+	def create_folder(self, router, folder_path):
+		# create the folder.
+		return self.create_unit(router, folder_path)
 
 	def create_file(self, router, file_path, file_body):
 		# create the file.
-		success, status = self.create_unit(file_path, False, file_body)
-		# respond to the request.
-		if success:
-			# send a successful status code.
-			router.send_simple("File created", 201)
-			return True
-		# respond with error when unsuccessful.
-		else:
-			self.send_error(router, status)
-			return False
+		return self.create_unit(router, file_path, True, file_body)
 
-	def delete_file(self, router, file_path):
-		# check auth
-		pass
-
-		local_path = self.local_files_path if not file_path else self.local_files_path + "/" + file_path
+	def server_delete_file(self, file_path):
+		local_path = self.get_local_path(file_path)
 
 		# check is subdir of files, i.e. not outside the safe share folder.
 		if not self.isChildPath(local_path):
 			print("access beyond bounds.")
-			router.send_error(403, "File unavailable")
-
-			return False
+			return False, 22
 
 		# check that the file exists.
 		if not os.path.exists(local_path):
-			router.send_error(404, "File doesn't exist")
+			return False, 40
 
 		# remove the directory.
 		if path.isdir(local_path):
 			shutil.rmtree(local_path)
 		# remote the file.
-		elif path.isfile(local_path):
-			os.remove(local_path)
-		# the file is neither a file or folder send an error.
 		else:
-			router.send_error(
-			    400, "Filepath refers to object that isn't folder nor file")
-			return False
+			os.remove(local_path)
 
 		# send a successful status code.
-		router.send_simple("Deleted", 204)
-		return True
+		return True, 0
+
+	def delete_file(self, router, file_path):
+		# check auth
+		pass
+
+		# perform the delete.
+		success, status = self.server_delete_file(file_path)
+
+		# send a successful status code.
+		if success:
+			router.send_simple("Deleted", 204)
+			return True
+		# otherwise, send the error.
+		else:
+			self.send_error(router, status)
+			return False
 
 	def shuttle_file(self, router, origin, destination, doCopy=True):
 		# check auth
 		pass
 
-		local_origin = self.local_files_path if not origin else self.local_files_path + "/" + origin
-		local_destination = self.local_files_path if not destination else self.local_files_path + "/" + destination
+		local_origin = self.get_local_path(origin)
+		local_destination = self.get_local_path(destination)
 
 		# check is subdir of files, i.e. not outside the safe share folder.
 		if not self.isChildPath(local_origin) or not self.isChildPath(
@@ -245,11 +251,8 @@ class FileServer(WebModule):
 		if doCopy:
 			if path.isdir(local_origin):
 				shutil.copytree(local_origin, local_destination)
-			elif path.isfile(local_origin):
-				shutil.copyfile(local_origin, local_destination)
 			else:
-				router.send_error(
-				    400, "Filepath refers to object that isn't folder nor file")
+				shutil.copyfile(local_origin, local_destination)
 
 			router.send_simple("Copied", 201)
 		else:
@@ -292,7 +295,6 @@ class FileServer(WebModule):
 		# the specified method or parameter was invalid.
 		else:
 			router.send_error(400, "Incorrect method")
-
 			return True
 
 	def POST(self, router):
