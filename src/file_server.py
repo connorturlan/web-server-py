@@ -16,12 +16,12 @@ class FileServer(WebModule):
 		super().__init__(path, "/method")
 		self.local_files_path = files_path.replace('\\', '/')
 
-	def get_files_tree(self, this_dir='\\'):
+	def generate_files_branch(self, this_dir, isTree):
 		# get the specific path
 		dir_path = self.local_files_path + this_dir
 		# generate a tree of the share folder structure.
 		content = {
-		    d: self.get_files_tree(path.join(this_dir, d))
+		    d: self.get_files_tree(path.join(this_dir, d)) if isTree else {}
 		    for d in listdir(dir_path)
 		    if path.isdir(path.join(dir_path, d))
 		}
@@ -33,22 +33,11 @@ class FileServer(WebModule):
 		]
 		return content
 
+	def get_files_tree(self, this_dir='\\'):
+		return self.generate_files_branch(this_dir, True)
+
 	def get_files_branch(self, this_dir='\\'):
-		# get the specific path
-		dir_path = self.local_files_path + this_dir
-		# generate a tree of the share folder structure.
-		content = {
-		    d: {}
-		    for d in listdir(dir_path)
-		    if path.isdir(path.join(dir_path, d))
-		}
-		content["."] = [
-		    f for f in listdir(dir_path) if path.isfile(path.join(dir_path, f))
-		]
-		content[".."] = [
-		    dir_path.lstrip(self.local_files_path).replace('\\', '/')
-		]
-		return content
+		return self.generate_files_branch(this_dir, False)
 
 	def isChildPath(self, child_path):
 		parent = path.realpath(self.local_files_path)
@@ -217,23 +206,18 @@ class FileServer(WebModule):
 
 		# check that the source file exists.
 		if not os.path.exists(local_origin):
-			print('1')
 			router.send_error(404, "Source not found")
 			return False
 
 		# check that the destination parent folder exists.
 		if not os.path.exists(os.path.dirname(local_destination)):
-			print('2')
 			router.send_error(404, "Destination not found")
 			return False
 
 		# check that the origin and destination are different.
 		if local_origin == local_destination:
-			print('3')
 			router.send_error(400, "Source and destination must be different")
 			return False
-
-		print('4')
 
 		# ensure the origin exists.
 		if doCopy:
