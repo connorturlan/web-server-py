@@ -1,6 +1,7 @@
 import unittest
 import requests
 
+
 class FileServerPostTests(unittest.TestCase):
 
 	@classmethod
@@ -34,7 +35,8 @@ class FileServerPostTests(unittest.TestCase):
 	def test_post_file_fails_incorrectMethod(self):
 		response = requests.post('http://localhost/files/get')
 
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 405)
+
 
 if __name__ == '__main__':
 	unittest.main()

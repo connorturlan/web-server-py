@@ -78,10 +78,9 @@ All modules at the end of their HTTP method implementation must return `True` or
 -   Add more descriptive HTTP codes:
     -   Add 405 - Method not allowed for invalid methods.
     -   Add 409 - Conflict for a copy/move is same dir or file already exists.
--   Add tests checking the folder structure after modification.
-    -   Add unittest to webserver for testing.
-    -   Working on unit tests for the file server.
+-   Add unittest to WebServer for testing.
 -   Make create file/folder methods DRY.
+-   Remove router from methods that modify the file system.
 
 ## License
 

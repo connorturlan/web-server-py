@@ -37,7 +37,7 @@ class FileServerCopyTests(unittest.TestCase):
 		response = send_patch('http://localhost/files/copy/.test/.file.txt',
 		                      {"destination": ".test/.file.txt"})
 
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 409)
 
 	def test_copy_file_renamingSucceeds(self):
 		response = send_patch('http://localhost/files/copy/.test/.file.txt',
@@ -57,7 +57,7 @@ class FileServerCopyTests(unittest.TestCase):
 		response = send_patch('http://localhost/files/copy/.test',
 		                      {"destination": '.test'})
 
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 409)
 
 	def test_copy_folder_renamingSucceeds(self):
 		response = send_patch('http://localhost/files/copy/.test/.subdir',
@@ -75,7 +75,7 @@ class FileServerCopyTests(unittest.TestCase):
 	def test_copy_file_fails_incorrectMethod(self):
 		response = send_patch('http://localhost/files/get')
 
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 405)
 
 	def test_copy_file_fails_fileNotFound(self):
 		response = send_patch('http://localhost/files/copy/.test/.ghost.shell',

@@ -1,6 +1,7 @@
 import unittest
 import requests
 
+
 class FileServerDeleteTests(unittest.TestCase):
 
 	@classmethod
@@ -36,10 +37,11 @@ class FileServerDeleteTests(unittest.TestCase):
 	def test_delete_file_fails_incorrectMethod(self):
 		response = requests.delete('http://localhost/files/get')
 
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 405)
 
 	def test_delete_file_fails_fileNotFound(self):
-		response = requests.delete('http://localhost/files/delete/.test/.ghost.shell')
+		response = requests.delete(
+		    'http://localhost/files/delete/.test/.ghost.shell')
 
 		self.assertEqual(response.status_code, 404)
 
@@ -47,6 +49,7 @@ class FileServerDeleteTests(unittest.TestCase):
 		response = requests.delete('http://localhost/files')
 
 		self.assertEqual(response.status_code, 400)
+
 
 if __name__ == '__main__':
 	unittest.main()

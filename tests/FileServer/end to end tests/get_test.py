@@ -55,7 +55,7 @@ class FileServerGetTests(unittest.TestCase):
 	def test_get_file_fails_incorrectMethod(self):
 		response = requests.get('http://localhost/files/upload')
 
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 405)
 
 
 if __name__ == '__main__':
