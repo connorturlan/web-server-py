@@ -47,10 +47,10 @@ class FileServer(WebModule):
 		# check that the error code does exist, then send.
 		if error_code in self.error_messages:
 			code, message = self.error_messages[error_code]
-			router.send_error(code, message)
+			router.send_simple(message, code)
 		# otherwise send an generic server-side error.
 		else:
-			router.send_error(500)
+			router.send_simple(message, 500)
 
 	def generate_files_branch(self, this_dir, isTree):
 		# get the specific path
