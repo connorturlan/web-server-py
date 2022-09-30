@@ -73,7 +73,12 @@ All modules at the end of their HTTP method implementation must return `True` or
     -   Allow toggling and configuring CORS within the `WebModule` or `HTTPController`.
 -   Add `optparse` for file server.
 -   Add unittest to WebServer for testing.
--   investigate tidying PATCH method in FileServer.
+-   Investigate tidying PATCH method in FileServer.
+-   Add authentication for the user, maybe oauth2.
+
+## Related Projects
+
+-   [React File Server](https://github.com/connorturlan/file-server-react) - A File Server front-end build to work with the provided File Server.
 
 ## License
 
