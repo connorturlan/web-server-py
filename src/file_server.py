@@ -15,6 +15,10 @@ class FileServer(WebModule):
 		super().__init__(path, "/method")
 		self.local_files_path = files_path.replace('\\', '/')
 
+		# confirm that the local file path exists, if not create it.
+		if not os.path.exists(self.local_files_path):
+			os.mkdir(self.local_files_path)
+
 		# define all error messages for the file server. as specified in the internal error documentation.
 		self.error_messages = {
 		    0: (200, "Success"),
@@ -47,9 +51,11 @@ class FileServer(WebModule):
 		# check that the error code does exist, then send.
 		if error_code in self.error_messages:
 			code, message = self.error_messages[error_code]
+			print('error:', code, message)
 			router.send_simple(message, code)
 		# otherwise send an generic server-side error.
 		else:
+			print('unspecified error:', error_code)
 			router.send_simple(message, 500)
 
 	def generate_files_branch(self, this_dir, isTree):
@@ -65,7 +71,8 @@ class FileServer(WebModule):
 		    f for f in listdir(dir_path) if path.isfile(path.join(dir_path, f))
 		]
 		content[".."] = [
-		    dir_path.lstrip(self.local_files_path).replace('\\', '/')
+		    dir_path.lstrip(self.local_files_path).replace('\\',
+		                                                   '/').lstrip('/')
 		]
 		return content
 
@@ -234,7 +241,7 @@ class FileServer(WebModule):
 			return False, 54
 
 		# check that the origin and destination are different.
-		if local_origin == local_destination:
+		if path.realpath(local_origin) == path.realpath(local_destination):
 			return False, 30
 
 		# perform the copy/move.
@@ -396,7 +403,7 @@ class FileServer(WebModule):
 		router.send(
 		    {
 		        "Access-Control-Allow-Methods":
-		            "GET, POST, UPDATE, DELETE, OPTIONS",
+		            "GET, POST, PATCH, DELETE, OPTIONS",
 		        "Access-Control-Allow-Headers":
 		            "*",
 		    },

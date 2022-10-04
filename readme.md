@@ -1,5 +1,7 @@
 # Python Web Server (inc. File Server)
 
+<img src="./docs/preview.png" height="400px" width="400px" />
+
 ## Setup
 
 This repository implements a Webpage host and File Server at the specified `hostname` with:
