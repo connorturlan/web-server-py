@@ -1,4 +1,4 @@
-#!/usr/bin/python3.8
+#!/usr/bin/python3
 
 from src.webpage_server import WebpageServer
 from src.file_server import FileServer
