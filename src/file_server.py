@@ -1,7 +1,11 @@
+from pickletools import optimize
+from statistics import quantiles
+from threading import local
 from src.web_server import WebServer, WebModule
 from urllib.parse import unquote
 from os import listdir, path
 from pathlib import Path
+from PIL import Image
 import mimetypes
 import shutil
 import json
@@ -130,6 +134,76 @@ class FileServer(WebModule):
 		file = open(local_path, "rb")
 		mimetype = mimetypes.guess_type(local_path)
 		router.send({"Content-Type": mimetype}, file.read())
+		return True
+
+	def resize_image(self, image, scale):
+		return image.resize(
+		    (int(image.size[0] * scale), int(image.size[1] * scale)),
+		    Image.ANTIALIAS)
+
+	def resize_gif(self, image):
+		pass
+
+	def send_file_preview(self, router, file_path):
+		# check auth
+		pass
+
+		# convert the relative file path to the local path.
+		local_path = self.get_local_path(file_path)
+
+		# check is subdir of files, i.e. not outside the safe share folder.
+		if not self.isChildPath(local_path):
+			self.send_error(router, 22)    # not in share dir
+			return False
+
+		# try and safely open the file, give feedback if not.
+		if not os.path.exists(local_path):
+			self.send_error(router, 40)    # file doesn't exist.
+			return False
+
+		# get the filetype and send to the user.
+		mimetype = mimetypes.guess_type(local_path)
+		if mimetype[0]:
+			if 'image' in mimetype[0]:
+				if not os.path.exists(self.get_local_path('.thumbs')):
+					os.mkdir(self.get_local_path('.thumbs'))
+
+				preview_path = self.get_local_path('.thumbs/' +
+				                                   local_path.replace('/', '_'))
+
+				if local_path.endswith('.gif'):
+					preview_path = local_path
+
+				if not local_path.endswith('.gif') and not os.path.exists(
+				    preview_path):
+					img = Image.open(local_path)
+					max_dim = max(img.size)
+					if max_dim > 200:
+						scale = 200 / max_dim
+						if not local_path.endswith('.gif'):
+							img = self.resize_image(img, scale)
+						else:
+							pass
+							# img = self.resize_image(img, scale)
+					img.save(preview_path, optimize=False, quantity=80)
+
+				file = open(preview_path, "rb")
+				mimetype = mimetypes.guess_type(preview_path)
+				router.send({"Content-Type": mimetype}, file.read())
+
+			if 'video' in mimetype[0]:
+				if os.path.getsize(local_path) < 5_000_000:
+					file = open(local_path, "rb")
+					mimetype = mimetypes.guess_type(local_path)
+					router.send({"Content-Type": mimetype}, file.read())
+				else:
+					print('filesize too large:',
+					      os.path.getsize(local_path) // 10 ^ 6)
+					self.send_error(router, 1)
+
+		else:
+			file = open(local_path, "rb")
+			router.send({"Content-Type": mimetype}, file.read())
 		return True
 
 	def server_create_unit(self, item_path, isFile, item_data):
@@ -303,6 +377,13 @@ class FileServer(WebModule):
 
 			# send the file, if it exists.
 			self.send_file(router, file_path)
+
+		# return the file specified in the request body.
+		elif params["method"] == "preview":
+			file_path = unquote("/" + "/".join(params[""]))
+
+			# send the file, if it exists.
+			self.send_file_preview(router, file_path)
 
 		# the specified method or parameter was invalid.
 		else:
