@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from src.webpage_server import WebpageServer
 from src.file_server import FileServer
 from src.web_server import WebServer

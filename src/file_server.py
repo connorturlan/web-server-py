@@ -80,10 +80,10 @@ class FileServer(WebModule):
 		]
 		return content
 
-	def get_files_tree(self, this_dir='\\'):
+	def get_files_tree(self, this_dir='/'):
 		return self.generate_files_branch(this_dir, True)
 
-	def get_files_branch(self, this_dir='\\'):
+	def get_files_branch(self, this_dir='/'):
 		return self.generate_files_branch(this_dir, False)
 
 	def isChildPath(self, child_path):
